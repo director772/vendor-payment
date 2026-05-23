@@ -146,17 +146,13 @@ async function loadVendors() {
     const freshUrl = SCRIPT_URL + '?action=vendors&_t=' + new Date().getTime();
     const r = await fetch(freshUrl);
     const d = await r.json();
-    
     if (d.status === 'ok' && d.vendors) {
       VENDORS = d.vendors;
       fillSelect(VENDORS);
       document.getElementById('loadNote').style.display = 'none';
-    } else {
-      throw new Error('no data');
     }
   } catch(e) {
-    document.getElementById('loadNote').textContent = '⚠️ Error: URL Check Karein ya Internet connection dekhein.';
-    document.getElementById('vSel').innerHTML = '<option value="">— Reload करें —</option>';
+    document.getElementById('vSel').innerHTML = '<option value="">— Error Reload करें —</option>';
   }
 }
 
@@ -188,12 +184,9 @@ function showBalance(v) {
   const box = document.getElementById('balBox');
   if (v.balance !== undefined && v.balance !== '' && Number(v.balance) >= 0) {
     document.getElementById('balAmt').textContent = '₹' + Number(v.balance).toLocaleString('en-IN');
-    const paid = v.totalPaid ? 'अब तक दिया: ₹' + Number(v.totalPaid).toLocaleString('en-IN') : '';
-    document.getElementById('balPaid').textContent = paid;
+    document.getElementById('balPaid').textContent = v.totalPaid ? 'अब तक दिया: ₹' + Number(v.totalPaid).toLocaleString('en-IN') : '';
     box.classList.add('on');
-  } else {
-    box.classList.remove('on');
-  }
+  } else { box.classList.remove('on'); }
 }
 
 function showQR(v) {
@@ -244,9 +237,7 @@ function onAmountChange() {
   if (balance > 0 && amt > balance) {
     warn.textContent = '⚠️ Amount (₹' + amt.toLocaleString('en-IN') + ') बाकी रकम (₹' + balance.toLocaleString('en-IN') + ') से ज़्यादा है!';
     warn.classList.add('on');
-  } else {
-    warn.classList.remove('on');
-  }
+  } else { warn.classList.remove('on'); }
 }
 
 async function doUpload() {
@@ -260,7 +251,7 @@ async function doUpload() {
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> भेज रहे हैं...';
+  btn.innerHTML = '<span class="spin"></span> Google को भेज रहे हैं...';
   clearStatus();
 
   try {
@@ -268,32 +259,25 @@ async function doUpload() {
     const raw = b64full.split(',')[1];
     lastTsTag = String(Date.now()).slice(-6);
 
-    // ==========================================
-    // STEP 1: PEHLE UPLOAD (await laga kar)
-    // Taki Safari upload ko cancel na kar paye!
-    // ==========================================
-    
-    // Text Data Update (Fast)
     const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
-    await fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
+    fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-    // Image Data Upload 
     const formData = new URLSearchParams();
     formData.append('vendor', selVendor.name);
     formData.append('image', raw);
     formData.append('tsTag', lastTsTag);
     formData.append('amount', amt);
 
-    await fetch(SCRIPT_URL, {
+    fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData
     }).catch(e=>{});
 
-    // ==========================================
-    // STEP 2: UPLOAD HONE KE BAAD DOWNLOAD
-    // ==========================================
+    btn.innerHTML = '<span class="spin"></span> Sheet Update हो रही है...';
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     try {
       const a = document.createElement('a');
       a.href = b64full;
@@ -303,9 +287,6 @@ async function doUpload() {
       document.body.removeChild(a);
     } catch(ex) {}
 
-    // ==========================================
-    // STEP 3: MESSAGE AUR SCREEN UPDATE
-    // ==========================================
     if (selVendor.balance !== undefined) {
       selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
       if (selVendor.totalPaid !== undefined) {
@@ -315,7 +296,6 @@ async function doUpload() {
       fillSelect(VENDORS);
     }
     
-    // Pehle photo clear, phir Success Message ✅
     clearPhoto(); 
     showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Download और Sheet Upload दोनों हो गए।');
     
