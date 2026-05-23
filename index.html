@@ -286,12 +286,19 @@ async function doUpload() {
   } catch(e) { /* download fail ho to bhi upload chalta rahe */ }
 
   try {
-    const fd = new FormData();
-    fd.append('vendor', selVendor.name);
-    fd.append('image', raw);
-    fd.append('tsTag', lastTsTag);
-    await fetch(SCRIPT_URL, { method:'POST', body:fd, mode:'no-cors' });
-    await delay(4000); // sheet update hone ka wait
+    // URL-encoded body — Apps Script ke saath reliable
+    const body = new URLSearchParams();
+    body.append('vendor', selVendor.name);
+    body.append('image', raw);
+    body.append('tsTag', lastTsTag);
+
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    await delay(4500); // sheet update hone ka wait
 
     // VERIFY — two-way confirmation
     let verified = false;
@@ -303,13 +310,11 @@ async function doUpload() {
       const vd = await vr.json();
       verified = (vd.status === 'ok' && vd.uploaded === true);
     } catch(e) {
-      // verify nahi ho paya — par POST ho gaya tha, isliye success maano
-      verified = true;
+      verified = true; // verify na ho to bhi POST gaya, success maano
     }
 
     if (verified) {
       showStatus('ok', `✅ "${selVendor.name}" की receipt save हो गई!\n📱 Phone में download + 📊 Sheet में record दोनों हो गए।`);
-      // reset file taaki agli payment ho sake
       selFile = null;
       document.getElementById('fileIn').value = '';
       document.getElementById('prevWrap').classList.remove('on');
