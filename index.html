@@ -287,7 +287,10 @@ function onFile(e) {
   r.onload = ev => {
     document.getElementById('prevImg').src = ev.target.result;
     document.getElementById('prevWrap').classList.add('on');
-    detectAmountFromReceipt(ev.target.result);
+    // Seedha amount box dikhao — AI nahi
+    document.getElementById('aiDetect').style.display = 'none';
+    document.getElementById('amtSection').classList.add('on');
+    document.getElementById('amtInput').focus();
   };
   r.readAsDataURL(f);
 }
@@ -402,40 +405,44 @@ async function doUpload() {
 
   lastTsTag = String(Date.now()).slice(-6);
 
-  // Upload via iframe form
+  // Phone mein download
   try {
-    const iframeName = 'upframe_' + lastTsTag;
-    const iframe = document.createElement('iframe');
-    iframe.name = iframeName; iframe.style.display='none';
-    document.body.appendChild(iframe);
-    const form = document.createElement('form');
-    form.method='POST'; form.action=SCRIPT_URL; form.target=iframeName; form.style.display='none';
-    const add=(n,v)=>{const t=document.createElement('textarea');t.name=n;t.value=v;form.appendChild(t);};
-    add('vendor', selVendor.name);
-    add('image', raw);
-    add('tsTag', lastTsTag);
-    add('amount', amt);
-    document.body.appendChild(form);
-    form.submit();
-    setTimeout(()=>{
-      try{document.body.removeChild(form);}catch(e){}
-      try{document.body.removeChild(iframe);}catch(e){}
-    }, 9000);
-  } catch(err) {
-    showStatus('err', `❌ भेजने में दिक्कत: ${err.message}`);
-    btn.disabled = false; btn.innerHTML = '☁️ Google Sheet पर भेजें'; return;
-  }
+    const a = document.createElement('a');
+    a.href = b64full;
+    a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g,'_') + '_' + lastTsTag + '.jpg';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  } catch(e){}
 
-  // Verify (8 attempts)
-  let verified = false;
-  for (let i = 0; i < 8 && !verified; i++) {
-    await delay(2500);
-    try {
-      const vr = await fetch(SCRIPT_URL+'?action=verify&vendor='+encodeURIComponent(selVendor.name)+'&ts='+lastTsTag, {mode:'cors',cache:'no-store'});
-      const vd = await vr.json();
-      if (vd.status==='ok' && vd.uploaded===true) verified = true;
-    } catch(e){}
-  }
+  // Upload — fetch with no-cors (works on iPhone Safari)
+  try {
+    const formData = new FormData();
+    formData.append('vendor', selVendor.name);
+    formData.append('image', raw);
+    formData.append('tsTag', lastTsTag);
+    formData.append('amount', amt);
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData
+    }).catch(()=>{});
+
+    // Wait for sheet to update
+    await delay(5000);
+
+    // Verify multiple times
+    let verified = false;
+    for (let i = 0; i < 6 && !verified; i++) {
+      await delay(2000);
+      try {
+        const vr = await fetch(
+          SCRIPT_URL + '?action=verify&vendor=' + encodeURIComponent(selVendor.name) + '&ts=' + lastTsTag,
+          {mode:'cors', cache:'no-store'}
+        );
+        const vd = await vr.json();
+        if (vd.status === 'ok' && vd.uploaded === true) verified = true;
+      } catch(e){}
+    }
 
   if (verified) {
     // Balance update karein locally
