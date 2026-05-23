@@ -285,18 +285,25 @@ async function doUpload() {
     document.body.removeChild(a);
   } catch(ex) {}
 
-  // Upload via FormData
-  const formData = new FormData();
-  formData.append('vendor', selVendor.name);
-  formData.append('image', raw);
-  formData.append('tsTag', lastTsTag);
-  formData.append('amount', amt);
+  // Step 1: Pehle sirf text data GET se bhejo (image ke bina) — har device pe chalta hai
+  try {
+    const getUrl = SCRIPT_URL +
+      '?action=upload' +
+      '&vendor=' + encodeURIComponent(selVendor.name) +
+      '&tsTag=' + lastTsTag +
+      '&amount=' + amt;
+    await fetch(getUrl, {mode: 'cors', cache: 'no-store'});
+  } catch(ex) {}
 
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    body: formData
-  }).catch(function() {});
+  // Step 2: Image POST try karo (chalega to Drive mein save hogi)
+  try {
+    const formData = new FormData();
+    formData.append('vendor', selVendor.name);
+    formData.append('image', raw);
+    formData.append('tsTag', lastTsTag);
+    formData.append('amount', amt);
+    fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:formData}).catch(function(){});
+  } catch(ex) {}
 
   // Wait then verify
   await delay(5000);
