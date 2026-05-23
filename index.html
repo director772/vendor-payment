@@ -285,72 +285,69 @@ async function doUpload() {
     document.body.removeChild(a);
   } catch(e) { /* download fail ho to bhi upload chalta rahe */ }
 
-  // ── UPLOAD via hidden form + iframe (CORS bypass — sabse reliable) ──
+  // ── UPLOAD via hidden form + iframe (pakka tareeka) ──
+  let uploadDone = false;
   try {
-    await new Promise((resolve) => {
-      // hidden iframe banao jisme form submit hoga
-      const iframe = document.createElement('iframe');
-      iframe.name = 'upload_frame_' + lastTsTag;
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
+    const iframeName = 'upframe_' + lastTsTag;
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
 
-      // hidden form banao
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = SCRIPT_URL;
-      form.target = iframe.name;
-      form.style.display = 'none';
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL;
+    form.target = iframeName;
+    form.style.display = 'none';
+    form.enctype = 'application/x-www-form-urlencoded';
 
-      const addField = (name, val) => {
-        const input = document.createElement('textarea');
-        input.name = name;
-        input.value = val;
-        form.appendChild(input);
-      };
-      addField('vendor', selVendor.name);
-      addField('image', raw);
-      addField('tsTag', lastTsTag);
+    const addField = (name, val) => {
+      const ta = document.createElement('textarea');
+      ta.name = name; ta.value = val;
+      form.appendChild(ta);
+    };
+    addField('vendor', selVendor.name);
+    addField('image', raw);
+    addField('tsTag', lastTsTag);
+    document.body.appendChild(form);
 
-      document.body.appendChild(form);
+    form.submit();
 
-      // iframe load hone par done
-      iframe.onload = () => {
-        setTimeout(() => {
-          try { document.body.removeChild(form); } catch(e){}
-          try { document.body.removeChild(iframe); } catch(e){}
-          resolve();
-        }, 500);
-      };
+    // form bhej diya — ab clean up (iframe load ka wait nahi karenge)
+    setTimeout(() => {
+      try { document.body.removeChild(form); } catch(e){}
+      try { document.body.removeChild(iframe); } catch(e){}
+    }, 8000);
 
-      form.submit();
-    });
+  } catch(err) {
+    showStatus('err', `❌ भेजने में दिक्कत: ${err.message}`);
+    btn.disabled = false;
+    btn.innerHTML = '☁️ Google Sheet पर भेजें';
+    return;
+  }
 
-    await delay(4500); // sheet update hone ka wait
-
-    // VERIFY — two-way confirmation
-    let verified = false;
+  // Sheet update hone ka wait, phir verify (max 4 baar koshish)
+  let verified = false;
+  for (let attempt = 0; attempt < 4 && !verified; attempt++) {
+    await delay(2500);
     try {
       const vr = await fetch(
         SCRIPT_URL + '?action=verify&vendor=' + encodeURIComponent(selVendor.name) + '&ts=' + lastTsTag,
-        { mode:'cors' }
+        { mode:'cors', cache:'no-store' }
       );
       const vd = await vr.json();
-      verified = (vd.status === 'ok' && vd.uploaded === true);
-    } catch(e) {
-      verified = true; // verify na ho to bhi form submit hua, success maano
-    }
+      if (vd.status === 'ok' && vd.uploaded === true) verified = true;
+    } catch(e) { /* retry */ }
+  }
 
-    if (verified) {
-      showStatus('ok', `✅ "${selVendor.name}" की receipt save हो गई!\n📱 Phone में download + 📊 Sheet में record दोनों हो गए।`);
-      selFile = null;
-      document.getElementById('fileIn').value = '';
-      document.getElementById('prevWrap').classList.remove('on');
-      document.getElementById('prevImg').src = '';
-    } else {
-      showStatus('err', `❌ Sheet से confirmation नहीं मिला (Failed)।\nInternet check करके दोबारा भेजें।`);
-    }
-  } catch(err) {
-    showStatus('err', `❌ Upload failed: ${err.message}`);
+  if (verified) {
+    showStatus('ok', `✅ "${selVendor.name}" की receipt save हो गई!\n📱 Phone में download + 📊 Sheet में record दोनों हो गए।`);
+    selFile = null;
+    document.getElementById('fileIn').value = '';
+    document.getElementById('prevWrap').classList.remove('on');
+    document.getElementById('prevImg').src = '';
+  } else {
+    showStatus('err', `❌ Confirmation नहीं मिला।\nSheet का Payments tab check करें — हो सकता है पहुँच गई हो। नहीं तो दोबारा भेजें।`);
   }
 
   btn.disabled = false;
@@ -367,16 +364,16 @@ function toB64(f) {
     reader.onload = e => {
       const img = new Image();
       img.onload = () => {
-        // max 1000px width/height
-        const maxDim = 1000;
+        // max 700px — chhoti image taaki upload pakka ho
+        const maxDim = 700;
         let w = img.width, h = img.height;
         if (w > h && w > maxDim) { h = h * maxDim / w; w = maxDim; }
         else if (h > maxDim) { w = w * maxDim / h; h = maxDim; }
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        // 70% quality JPEG
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
+        // 55% quality JPEG — chhoti file
+        resolve(canvas.toDataURL('image/jpeg', 0.55));
       };
       img.onerror = reject;
       img.src = e.target.result;
