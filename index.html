@@ -65,10 +65,6 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
 .status.err{display:flex;background:#FFEBEE;color:#B71C1C;border:1.5px solid #FFCDD2;}
 .spin{display:inline-block;width:16px;height:16px;border:3px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:rotate 0.7s linear infinite;vertical-align:middle;margin-right:7px;}
 @keyframes rotate{to{transform:rotate(360deg)}}
-.info-card{background:#fff;border-radius:18px;border:1.5px solid #FFD4B0;margin:14px 14px 0;padding:16px 20px;max-width:480px;margin-left:auto;margin-right:auto;}
-.info-card summary{font-weight:700;color:#E8590C;cursor:pointer;font-size:0.88rem;list-style:none;display:flex;align-items:center;gap:8px;}
-.info-card summary::-webkit-details-marker{display:none;}
-.info-card p{font-size:0.82rem;color:#5D4037;line-height:1.7;margin-top:10px;}
 </style>
 </head>
 <body>
@@ -135,25 +131,23 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
     <span id="sMsg"></span>
   </div>
 </div>
-<details class="info-card">
-  <summary>[+] नया Vendor कैसे Add करें</summary>
-  <p>Sheet की <b>"Vendors"</b> tab → नई row → A: Vendor Name | B: UPI ID | C: बाकी Amount<br>Page reload करो → vendor आ जाएगा! ✅</p>
-</details>
-<details class="info-card">
-  <summary>[+] सारी Payments कहाँ देखें</summary>
-  <p>Sheet की <b>"Payments"</b> tab → हर payment अलग row में amount के साथ।</p>
-</details>
 
 <script>
+// YAHAN APNA APPS SCRIPT KA URL PASTE KAREN 👇
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwU-Ypzaru0eK20ncyqNmh7HpUczv0PqxaE9nVhbPPAqtqQVamariQ6eO8r1Aq2AXo/exec";
+// ------------------------------------------
+
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
 
 window.onload = loadVendors;
 
 async function loadVendors() {
   try {
-    const r = await fetch(SCRIPT_URL + '?action=vendors', {mode:'cors'});
+    // IPHONE FIX: '?_t=' + Date.now() cache clear karta hai
+    const freshUrl = SCRIPT_URL + '?action=vendors&_t=' + new Date().getTime();
+    const r = await fetch(freshUrl);
     const d = await r.json();
+    
     if (d.status === 'ok' && d.vendors) {
       VENDORS = d.vendors;
       fillSelect(VENDORS);
@@ -162,7 +156,7 @@ async function loadVendors() {
       throw new Error('no data');
     }
   } catch(e) {
-    document.getElementById('loadNote').textContent = '⚠️ Vendors load नहीं हुए। Reload करें।';
+    document.getElementById('loadNote').textContent = '⚠️ Error: URL Check Karein ya Internet connection dekhein.';
     document.getElementById('vSel').innerHTML = '<option value="">— Reload करें —</option>';
   }
 }
@@ -173,8 +167,7 @@ function fillSelect(list) {
   list.forEach(function(v, i) {
     const o = document.createElement('option');
     o.value = i;
-    const bal = (v.balance !== undefined && v.balance !== '') ?
-      ' — ₹' + Number(v.balance).toLocaleString('en-IN') + ' बाकी' : '';
+    const bal = (v.balance !== undefined && v.balance !== '') ? ' — ₹' + Number(v.balance).toLocaleString('en-IN') + ' बाकी' : '';
     o.textContent = v.name + bal;
     s.appendChild(o);
   });
@@ -276,35 +269,26 @@ async function doUpload() {
     const raw = b64full.split(',')[1];
     lastTsTag = String(Date.now()).slice(-6);
 
-    // Backup download
-    try {
-      const a = document.createElement('a');
-      a.href = b64full;
-      a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch(ex) {}
+    // 1. Text Data Fast Upload (iPhone Cache Buster)
+    const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
+    fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-    // iPhone Safe Payload
-    const payload = JSON.stringify({
-      vendor: selVendor.name,
-      image: raw,
-      tsTag: lastTsTag,
-      amount: amt
-    });
+    // 2. Image Data Upload (iPhone URLSearchParams bypass)
+    const formData = new URLSearchParams();
+    formData.append('vendor', selVendor.name);
+    formData.append('image', raw);
+    formData.append('tsTag', lastTsTag);
+    formData.append('amount', amt);
 
-    // POST Request
-    const response = await fetch(SCRIPT_URL, {
+    fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: payload
-    });
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData
+    }).catch(e=>{});
 
-    const data = await response.json();
-
-    if (data.status === 'success' || data.status === 'ok') {
+    // 3. UI Status (Bina wait kiye)
+    setTimeout(() => {
       if (selVendor.balance !== undefined) {
         selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
         if (selVendor.totalPaid !== undefined) {
@@ -313,18 +297,18 @@ async function doUpload() {
         showBalance(selVendor);
         fillSelect(VENDORS);
       }
-      showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📊 Sheet aur Drive dono mein record ho gaya!');
+      showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!');
       clearPhoto();
-    } else {
-      showStatus('err', '❌ Upload failed: ' + (data.error || 'Server error'));
-    }
+      
+      btn.disabled = false;
+      btn.innerHTML = '☁️ Google Sheet पर भेजें';
+    }, 1200);
 
   } catch (error) {
-    showStatus('err', '❌ Connection Error: iPhone se request complete nahi hui.');
+    showStatus('err', '❌ Error processing photo.');
+    btn.disabled = false;
+    btn.innerHTML = '☁️ Google Sheet पर भेजें';
   }
-
-  btn.disabled = false;
-  btn.innerHTML = '☁️ Google Sheet पर भेजें';
 }
 
 function toB64(f) {
@@ -351,3 +335,27 @@ function toB64(f) {
 }
 
 function showStatus(type, msg) {
+  const b = document.getElementById('statusBox');
+  b.className = 'status ' + type;
+  document.getElementById('sIco').textContent = type === 'ok' ? '✅' : '❌';
+  document.getElementById('sMsg').textContent = msg;
+}
+
+function clearStatus() { document.getElementById('statusBox').className = 'status'; }
+
+function reset() {
+  selVendor = null; selFile = null;
+  document.getElementById('qrSec').classList.remove('on');
+  document.getElementById('upSec').classList.remove('on');
+  document.getElementById('balBox').classList.remove('on');
+  clearPhoto();
+  clearStatus();
+  document.getElementById('div1').style.display = 'none';
+  document.getElementById('div2').style.display = 'none';
+  btn = document.getElementById('submitBtn');
+  btn.innerHTML = '☁️ Google Sheet पर भेजें';
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
