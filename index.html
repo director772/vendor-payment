@@ -275,7 +275,7 @@ async function doUpload() {
   const raw = b64full.split(',')[1];
   lastTsTag = String(Date.now()).slice(-6);
 
-  // Phone mein download
+  // Phone mein photo download (Backup ke liye)
   try {
     const a = document.createElement('a');
     a.href = b64full;
@@ -285,61 +285,57 @@ async function doUpload() {
     document.body.removeChild(a);
   } catch(ex) {}
 
-  // Step 1: Pehle sirf text data GET se bhejo (image ke bina) — har device pe chalta hai
+  // Step 1: Text data GET se bhejo (Fast method - no 17 sec wait)
   try {
     const getUrl = SCRIPT_URL +
       '?action=upload' +
       '&vendor=' + encodeURIComponent(selVendor.name) +
       '&tsTag=' + lastTsTag +
       '&amount=' + amt;
-    await fetch(getUrl, {mode: 'cors', cache: 'no-store'});
-  } catch(ex) {}
+      
+    const res = await fetch(getUrl, {mode: 'cors', cache: 'no-store'});
+    const data = await res.json(); 
 
-  // Step 2: Image POST try karo (chalega to Drive mein save hogi)
-  try {
-    const formData = new FormData();
-    formData.append('vendor', selVendor.name);
-    formData.append('image', raw);
-    formData.append('tsTag', lastTsTag);
-    formData.append('amount', amt);
-    fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:formData}).catch(function(){});
-  } catch(ex) {}
+    if(data.status === "success") {
+       if (selVendor.balance !== undefined) {
+          selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
+          if (selVendor.totalPaid !== undefined) {
+            selVendor.totalPaid = Number(selVendor.totalPaid || 0) + amt;
+          }
+          showBalance(selVendor);
+          fillSelect(VENDORS);
+       }
+       showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📊 Sheet में record हो गया।');
+       clearPhoto();
 
-  // Wait then verify
-  await delay(5000);
-  let verified = false;
-  for (let i = 0; i < 6 && !verified; i++) {
-    await delay(2000);
-    try {
-      const vr = await fetch(
-        SCRIPT_URL + '?action=verify&vendor=' + encodeURIComponent(selVendor.name) + '&ts=' + lastTsTag,
-        {mode: 'cors', cache: 'no-store'}
-      );
-      const vd = await vr.json();
-      if (vd.status === 'ok' && vd.uploaded === true) {
-        verified = true;
-      }
-    } catch(ex) {}
-  }
+       // Step 2: iPhone Fix - FormData ki jagah JSON payload (text/plain) bhejein taaki Drive me photo aaye
+       const payload = JSON.stringify({
+           vendor: selVendor.name,
+           image: raw,
+           tsTag: lastTsTag,
+           amount: amt
+       });
 
-  if (verified) {
-    if (selVendor.balance !== undefined) {
-      selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
-      if (selVendor.totalPaid !== undefined) {
-        selVendor.totalPaid = Number(selVendor.totalPaid || 0) + amt;
-      }
-      showBalance(selVendor);
-      fillSelect(VENDORS);
+       fetch(SCRIPT_URL, {
+           method: 'POST',
+           mode: 'no-cors',
+           headers: {
+               'Content-Type': 'text/plain'
+           },
+           body: payload
+       }).catch(function(){});
+
+    } else {
+       showStatus('err', '❌ Error: ' + (data.error || data.msg || 'Upload failed'));
     }
-    showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Phone में download + 📊 Sheet में record हो गया।');
-    clearPhoto();
-  } else {
-    showStatus('err', '❌ Confirmation नहीं मिला। Sheet का Payments tab check करें।');
+  } catch(ex) {
+     showStatus('err', '❌ Connection Error: System ne response nahi diya.');
   }
 
   btn.disabled = false;
   btn.innerHTML = '☁️ Google Sheet पर भेजें';
 }
+
 
 function toB64(f) {
   return new Promise(function(resolve, reject) {
