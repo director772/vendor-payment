@@ -60,7 +60,7 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
 .sbtn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#E8590C,#F5A623);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(232,89,12,0.32);transition:transform 0.15s;margin-top:8px;}
 .sbtn:active{transform:scale(0.98);}
 .sbtn:disabled{opacity:0.6;cursor:not-allowed;}
-.status{display:none;border-radius:13px;padding:14px 16px;font-size:0.9rem;font-weight:600;align-items:center;gap:10px;width:100%;margin-top:14px;line-height:1.5;}
+.status{display:none;border-radius:13px;padding:14px 16px;font-size:0.9rem;font-weight:600;align-items:center;gap:10px;width:100%;margin-top:14px;line-height:1.5;white-space:pre-line;}
 .status.ok{display:flex;background:#E8F5EC;color:#1B6B2F;border:1.5px solid #A5D6A7;}
 .status.err{display:flex;background:#FFEBEE;color:#B71C1C;border:1.5px solid #FFCDD2;}
 .spin{display:inline-block;width:16px;height:16px;border:3px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:rotate 0.7s linear infinite;vertical-align:middle;margin-right:7px;}
@@ -143,7 +143,6 @@ window.onload = loadVendors;
 
 async function loadVendors() {
   try {
-    // IPHONE FIX: '?_t=' + Date.now() cache clear karta hai
     const freshUrl = SCRIPT_URL + '?action=vendors&_t=' + new Date().getTime();
     const r = await fetch(freshUrl);
     const d = await r.json();
@@ -269,6 +268,45 @@ async function doUpload() {
     const raw = b64full.split(',')[1];
     lastTsTag = String(Date.now()).slice(-6);
 
+    // ==========================================
+    // NAYA DOWNLOAD CODE (IPHONE & ANDROID SAFEST)
+    // ==========================================
+    try {
+      const parts = b64full.split(';base64,');
+      const contentType = parts[0].split(':')[1];
+      const rawB64 = window.atob(parts[1]);
+      const rawLength = rawB64.length;
+      const uInt8Array = new Uint8Array(rawLength);
+      
+      for (let i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = rawB64.charCodeAt(i);
+      }
+      
+      const blob = new Blob([uInt8Array], {type: contentType});
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
+      document.body.appendChild(a);
+      a.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
+      }, 100);
+    } catch(ex) {
+      try {
+        const a = document.createElement('a');
+        a.href = b64full;
+        a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch(ex2) {}
+    }
+    // ==========================================
+
     // 1. Text Data Fast Upload (iPhone Cache Buster)
     const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
     fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
@@ -297,8 +335,13 @@ async function doUpload() {
         showBalance(selVendor);
         fillSelect(VENDORS);
       }
-      showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!');
-      clearPhoto();
+      
+      // ==========================================
+      // YAHAN HAI MESSAGE FIX
+      // Pehle screen saaf hogi, uske baad message aayega!
+      // ==========================================
+      clearPhoto(); 
+      showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Phone में Photo Download हो गई है।');
       
       btn.disabled = false;
       btn.innerHTML = '☁️ Google Sheet पर भेजें';
