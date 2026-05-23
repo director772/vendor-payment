@@ -258,13 +258,6 @@ function onAmountChange() {
 }
 
 async function doUpload() {
-  // Agar internet band hai toh pehle hi rok do
-  if (!navigator.onLine) {
-    document.getElementById('amtWarn').textContent = '⚠️ Internet Connection Check Karein!';
-    document.getElementById('amtWarn').classList.add('on');
-    return;
-  }
-
   if (!selFile || !selVendor) return;
   const amt = parseInt(document.getElementById('amtInput').value) || 0;
   if (amt <= 0) {
@@ -278,11 +271,19 @@ async function doUpload() {
   btn.innerHTML = '<span class="spin"></span> भेज रहे हैं...';
   clearStatus();
 
-  const b64full = await toB64(selFile);
+  let b64full;
+  try {
+      b64full = await toB64(selFile);
+  } catch(e) {
+      showStatus('err', '❌ Photo process nahi ho paayi.');
+      btn.disabled = false;
+      btn.innerHTML = '☁️ Google Sheet पर भेजें';
+      return;
+  }
   const raw = b64full.split(',')[1];
   lastTsTag = String(Date.now()).slice(-6);
 
-  // Phone mein photo download (Backup ke liye)
+  // Phone mein photo download
   try {
     const a = document.createElement('a');
     a.href = b64full;
@@ -292,26 +293,26 @@ async function doUpload() {
     document.body.removeChild(a);
   } catch(ex) {}
 
-  // ---- BULLETPROOF IPHONE FIX ---- 
-  
-  // 1. Text Data Bhejo (Bina wait kiye, no-cors ke sath taaki Safari block na kare)
+  // 1. Text Data (Fast Sheet Update - No CORS block)
   const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt;
   fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-  // 2. Photo Bhejo (URLSearchParams iPhone ke liye sabse best aur safe method hai)
-  const params = new URLSearchParams();
-  params.append('vendor', selVendor.name);
-  params.append('image', raw);
-  params.append('tsTag', lastTsTag);
-  params.append('amount', amt);
+  // 2. Image Data (Safe format for iPhone)
+  const payload = JSON.stringify({
+      vendor: selVendor.name,
+      image: raw,
+      tsTag: lastTsTag,
+      amount: amt
+  });
 
   fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      body: params
+      headers: { 'Content-Type': 'text/plain' },
+      body: payload
   }).catch(e=>{});
 
-  // 3. Turant Success Message Dikhao (Sirf 1.5 second delay ke baad)
+  // 3. Fast UI Success
   setTimeout(() => {
       if (selVendor.balance !== undefined) {
           selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
@@ -326,8 +327,9 @@ async function doUpload() {
       
       btn.disabled = false;
       btn.innerHTML = '☁️ Google Sheet पर भेजें';
-  }, 1500);
+  }, 1800);
 }
+
 function toB64(f) {
   return new Promise(function(resolve, reject) {
     const reader = new FileReader();
@@ -350,8 +352,6 @@ function toB64(f) {
     reader.readAsDataURL(f);
   });
 }
-
-function delay(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
 
 function showStatus(type, msg) {
   const b = document.getElementById('statusBox');
