@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vendor Payment Portal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'Baloo 2',sans-serif; background:#FFF7F0; min-height:100vh; padding-bottom:40px; }
+.hdr {
+  background: linear-gradient(135deg,#C94A00,#E8590C 50%,#FF9800);
+  padding:22px 20px 18px; text-align:center;
+  box-shadow:0 3px 18px rgba(200,74,0,0.35);
+}
+.hdr h1 { color:#fff; font-size:1.5rem; font-weight:800; }
+.hdr p  { color:rgba(255,255,255,0.82); font-size:0.78rem; margin-top:3px; }
+.card {
+  background:#fff; border-radius:22px;
+  box-shadow:0 6px 32px rgba(200,74,0,0.10);
+  border:1.5px solid #FFD4B0; margin:22px 14px 0;
+  padding:24px 20px 28px; max-width:480px;
+  margin-left:auto; margin-right:auto;
+}
+.lbl { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:1.4px; color:#E8590C; margin-bottom:8px; }
+.sel-wrap { position:relative; margin-bottom:22px; }
+.sel-wrap select {
+  width:100%; padding:13px 42px 13px 15px;
+  border-radius:13px; border:2px solid #FFD4B0;
+  background:#FFF7F0; font-family:inherit;
+  font-size:1rem; font-weight:700; color:#2D1200;
+  appearance:none; cursor:pointer; outline:none;
+  transition:border 0.2s, box-shadow 0.2s;
+}
+.sel-wrap select:focus { border-color:#E8590C; box-shadow:0 0 0 3px rgba(232,89,12,0.12); }
+.sel-wrap::after { content:'▾'; position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:1.2rem; color:#E8590C; pointer-events:none; }
+.loading-note { font-size:0.75rem; color:#8C5A30; text-align:center; margin-top:-12px; margin-bottom:18px; }
+.divhr { height:1px; background:linear-gradient(to right,transparent,#FFD4B0,transparent); margin:4px 0 22px; }
+.qr-sec { display:none; flex-direction:column; align-items:center; margin-bottom:26px; }
+.qr-sec.on { display:flex; animation:pop 0.35s ease; }
+@keyframes pop { from{opacity:0;transform:scale(0.93)} to{opacity:1;transform:scale(1)} }
+.vname { font-size:1.25rem; font-weight:800; color:#2D1200; margin-bottom:3px; }
+.vsub  { font-size:0.78rem; color:#8C5A30; margin-bottom:16px; text-align:center; }
+.qr-box { background:#fff; border:3px solid #E8590C; border-radius:20px; padding:16px; box-shadow:0 5px 24px rgba(232,89,12,0.20); }
+#qr-out canvas, #qr-out img { border-radius:8px; display:block; max-width:200px; max-height:200px; }
+.qr-img-wrap img { width:200px; height:200px; object-fit:contain; border-radius:8px; display:block; }
+.upi-badge { margin-top:12px; background:#FFF0E4; border:1.5px solid #FFD4B0; border-radius:10px; padding:7px 18px; font-size:0.8rem; font-weight:700; color:#8C5A30; }
+.upi-badge span { color:#E8590C; }
+.scan-tag { margin-top:10px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:#E8590C; }
+.up-sec { display:none; flex-direction:column; align-items:center; }
+.up-sec.on { display:flex; animation:pop 0.35s ease 0.08s both; }
+.up-box { width:100%; border:2.5px dashed #FFD4B0; border-radius:16px; background:#FFF7F0; padding:30px 18px; text-align:center; cursor:pointer; position:relative; transition:border-color 0.2s, background 0.2s; }
+.up-box:hover { border-color:#E8590C; background:#FFF0E4; }
+.up-box input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.up-icon  { font-size:2.4rem; margin-bottom:8px; }
+.up-title { font-size:1rem; font-weight:700; color:#2D1200; margin-bottom:4px; }
+.up-sub   { font-size:0.77rem; color:#8C5A30; }
+.prev-wrap { display:none; flex-direction:column; align-items:center; gap:14px; margin-top:16px; width:100%; }
+.prev-wrap.on { display:flex; }
+.prev-img { width:180px; height:180px; object-fit:cover; border-radius:14px; border:3px solid #E8590C; box-shadow:0 4px 18px rgba(232,89,12,0.2); }
+.sbtn { width:100%; padding:15px; border-radius:13px; border:none; background:linear-gradient(135deg,#E8590C,#F5A623); color:#fff; font-family:inherit; font-size:1rem; font-weight:800; cursor:pointer; box-shadow:0 4px 16px rgba(232,89,12,0.32); transition:transform 0.15s; display:none; margin-top:4px; }
+.sbtn.on { display:block; }
+.sbtn:active { transform:scale(0.98); }
+.sbtn:disabled { opacity:0.6; cursor:not-allowed; }
+.status { display:none; border-radius:13px; padding:14px 16px; font-size:0.9rem; font-weight:600; align-items:center; gap:10px; width:100%; margin-top:14px; line-height:1.5; }
+.status.ok  { display:flex; background:#E8F5EC; color:#1B6B2F; border:1.5px solid #A5D6A7; }
+.status.err { display:flex; background:#FFEBEE; color:#B71C1C; border:1.5px solid #FFCDD2; }
+.spin { display:inline-block; width:16px; height:16px; border:3px solid rgba(255,255,255,0.35); border-top-color:#fff; border-radius:50%; animation:rotate 0.7s linear infinite; vertical-align:middle; margin-right:7px; }
+@keyframes rotate { to{transform:rotate(360deg)} }
+.info-card { background:#fff; border-radius:18px; border:1.5px solid #FFD4B0; margin:14px 14px 0; padding:18px 20px; max-width:480px; margin-left:auto; margin-right:auto; }
+.info-card summary { font-weight:700; color:#E8590C; cursor:pointer; font-size:0.9rem; list-style:none; display:flex; align-items:center; gap:8px; }
+.info-card summary::-webkit-details-marker { display:none; }
+.info-card p { font-size:0.82rem; color:#5D4037; line-height:1.7; margin-top:10px; }
+.info-card b { color:#BF360C; }
+.info-card .row-eg { background:#FFF8F0; border:1px solid #FFD4B0; border-radius:8px; padding:8px 12px; margin-top:8px; font-size:0.8rem; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>💳 Vendor Payment Portal</h1>
+  <p>Vendor चुनें → QR Scan → Receipt Upload</p>
+</div>
+
+<div class="card">
+  <div class="lbl">Vendor चुनें</div>
+  <div class="sel-wrap">
+    <select id="vSel" onchange="onVendor()">
+      <option value="">— Loading vendors... —</option>
+    </select>
+  </div>
+  <div class="loading-note" id="loadNote">Sheet से vendors load हो रहे हैं...</div>
+
+  <div class="divhr" id="div1" style="display:none"></div>
+
+  <div class="qr-sec" id="qrSec">
+    <div class="vname" id="vName"></div>
+    <div class="vsub">QR scan करें → Payment करें → Receipt upload करें</div>
+    <div class="qr-box"><div id="qr-out"></div></div>
+    <div class="upi-badge" id="upiBadge" style="display:none">UPI: <span id="upiShow"></span></div>
+    <div class="scan-tag">📱 PhonePe / GPay / Paytm से Scan करें</div>
+  </div>
+
+  <div class="divhr" id="div2" style="display:none"></div>
+
+  <div class="up-sec" id="upSec">
+    <div class="lbl" style="width:100%;margin-bottom:10px;">Payment Receipt Upload करें</div>
+
+    <!-- 2 alag buttons: Camera + Gallery -->
+    <div style="display:flex; gap:10px; width:100%;">
+      <label style="flex:1; border:2.5px dashed #FFD4B0; border-radius:16px; background:#FFF7F0; padding:22px 10px; text-align:center; cursor:pointer; position:relative;">
+        <div style="font-size:2rem;">📷</div>
+        <div style="font-size:0.9rem; font-weight:700; color:#2D1200; margin-top:4px;">Camera</div>
+        <input type="file" id="fileCam" accept="image/*" capture="environment" onchange="onFile(event)" style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
+      </label>
+      <label style="flex:1; border:2.5px dashed #FFD4B0; border-radius:16px; background:#FFF7F0; padding:22px 10px; text-align:center; cursor:pointer; position:relative;">
+        <div style="font-size:2rem;">🖼️</div>
+        <div style="font-size:0.9rem; font-weight:700; color:#2D1200; margin-top:4px;">Gallery</div>
+        <input type="file" id="fileGal" accept="image/*" onchange="onFile(event)" style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
+      </label>
+    </div>
+    <div class="up-sub" style="margin-top:8px;">Photo phone में भी save होगी</div>
+
+    <div class="prev-wrap" id="prevWrap">
+      <img id="prevImg" class="prev-img" src="" alt="">
+      <button class="sbtn on" id="submitBtn" onclick="doUpload()">☁️ Google Sheet पर भेजें</button>
+    </div>
+  </div>
+
+  <div class="status" id="statusBox">
+    <span id="sIco" style="font-size:1.4rem"></span>
+    <span id="sMsg"></span>
+  </div>
+</div>
+
+<!-- HOW TO ADD VENDOR -->
+<details class="info-card">
+  <summary>➕ नया Vendor कैसे Add करें (आसान!)</summary>
+  <p>अब आपको <b>code छूने की जरूरत नहीं!</b> बस अपनी Google Sheet खोलो:</p>
+  <p>1. <b>"Vendors"</b> sheet खोलो<br>
+     2. नई row में नाम + UPI ID भर दो<br>
+     3. Page reload करो — नया vendor आ जाएगा! ✅</p>
+  <div class="row-eg">
+    Example नई row:<br>
+    <b>A:</b> Naya Vendor &nbsp;|&nbsp; <b>B:</b> 9999999999@ybl
+  </div>
+  <p style="margin-top:12px;">UPI ID बदलनी हो? बस Sheet में edit कर दो — page apne aap update हो जाएगा।</p>
+</details>
+
+<!-- VIEW PAYMENTS -->
+<details class="info-card">
+  <summary>📊 सारी Payments कहाँ देखें</summary>
+  <p>अपनी Google Sheet में <b>"Payments"</b> tab खोलो। वहाँ हर payment अलग row में दिखेगी:</p>
+  <p>• कब payment हुई (Date/Time)<br>
+     • किस vendor को<br>
+     • Receipt photo का link</p>
+  <p>एक vendor की 10 payments? → 10 अलग rows। कुछ delete नहीं होगा। ✅</p>
+</details>
+
+<script>
+// ════════════════════════════════════════════
+//  ✅ GOOGLE APPS SCRIPT URL — CONNECTED
+// ════════════════════════════════════════════
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdq8H2Tm5A_y0eXh16m-Mwhqz61w1a3f2rJ6R1JgmpuPOM3NV82wl0aRuQ92nd86w/exec";
+
+// ── Backup QR images (jin vendors ki UPI ID nahi mili) ──
+// In vendors ke liye QR image URL yahan daal sakte hain (optional)
+const QR_IMAGES = {
+  // "MFD Supply": "image_url_here",
+  // "Maan Fabricator": "image_url_here",
+  // "Usman Supply": "image_url_here"
+};
+
+let VENDORS = [];
+let selVendor = null, selFile = null, lastTsTag = "";
+
+// ════════════════════════════════
+//  LOAD VENDORS FROM SHEET
+// ════════════════════════════════
+window.onload = loadVendors;
+
+async function loadVendors() {
+  try {
+    const r = await fetch(SCRIPT_URL + '?action=vendors', { mode:'cors' });
+    const d = await r.json();
+    if (d.status === 'ok' && d.vendors) {
+      VENDORS = d.vendors;
+      fillSelect(VENDORS);
+      document.getElementById('loadNote').style.display = 'none';
+      return;
+    }
+    throw new Error('no data');
+  } catch(e) {
+    document.getElementById('loadNote').textContent = '⚠️ Vendors load नहीं हुए। Internet check करके reload करें।';
+    document.getElementById('vSel').innerHTML = '<option value="">— Reload करें —</option>';
+  }
+}
+
+function fillSelect(list) {
+  const s = document.getElementById('vSel');
+  s.innerHTML = '<option value="">— Vendor Select करें —</option>';
+  list.forEach((v,i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = v.name; s.appendChild(o);
+  });
+}
+
+// ════════════════════════════════
+//  VENDOR SELECT
+// ════════════════════════════════
+function onVendor() {
+  const idx = parseInt(document.getElementById('vSel').value);
+  reset();
+  if (isNaN(idx)) return;
+  selVendor = VENDORS[idx];
+  showQR(selVendor);
+  document.getElementById('div1').style.display = 'block';
+  document.getElementById('div2').style.display = 'block';
+  document.getElementById('upSec').classList.add('on');
+}
+
+function showQR(v) {
+  document.getElementById('vName').textContent = '🏪 ' + v.name;
+  const c = document.getElementById('qr-out');
+  c.innerHTML = '';
+
+  const imgUrl = QR_IMAGES[v.name];
+
+  if (v.upi && v.upi.trim()) {
+    // UPI ID se QR banao
+    const link = 'upi://pay?pa=' + v.upi.trim() + '&pn=' + encodeURIComponent(v.name) + '&am=0&cu=INR';
+    new QRCode(c, {
+      text: link, width:200, height:200,
+      colorDark:'#2D1200', colorLight:'#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    document.getElementById('upiShow').textContent = v.upi;
+    document.getElementById('upiBadge').style.display = 'block';
+  } else if (imgUrl) {
+    // QR image dikhao
+    const wrap = document.createElement('div');
+    wrap.className = 'qr-img-wrap';
+    const img = document.createElement('img');
+    img.src = imgUrl; img.alt = v.name;
+    wrap.appendChild(img);
+    c.appendChild(wrap);
+    document.getElementById('upiBadge').style.display = 'none';
+  } else {
+    // Koi QR nahi
+    c.innerHTML = '<div style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;background:#FFF0E4;border-radius:8px;color:#E8590C;font-size:0.82rem;text-align:center;padding:16px;line-height:1.5;">इस vendor की<br>UPI ID Sheet में<br>भरना बाकी है 📞</div>';
+    document.getElementById('upiBadge').style.display = 'none';
+  }
+
+  document.getElementById('qrSec').classList.add('on');
+}
+
+// ════════════════════════════════
+//  FILE SELECT
+// ════════════════════════════════
+function onFile(e) {
+  const f = e.target.files[0]; if(!f) return;
+  selFile = f;
+  clearStatus();
+  const r = new FileReader();
+  r.onload = ev => {
+    document.getElementById('prevImg').src = ev.target.result;
+    document.getElementById('prevWrap').classList.add('on');
+  };
+  r.readAsDataURL(f);
+}
+
+// ════════════════════════════════
+//  UPLOAD (har baar nayi row)
+// ════════════════════════════════
+async function doUpload() {
+  if (!selFile || !selVendor) return;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Uploading...';
+  clearStatus();
+
+  const b64 = await toB64(selFile);
+  const raw = b64.split(',')[1];
+  lastTsTag = String(Date.now()).slice(-6); // unique tag is payment ka
+
+  // ── Photo phone mein bhi save (download) karo ──
+  try {
+    const a = document.createElement('a');
+    a.href = b64;
+    const safeName = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_');
+    a.download = safeName + '_' + lastTsTag + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch(e) { /* download fail ho to bhi upload chalta rahe */ }
+
+  // ── UPLOAD via hidden form + iframe (pakka tareeka) ──
+  let uploadDone = false;
+  try {
+    const iframeName = 'upframe_' + lastTsTag;
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL;
+    form.target = iframeName;
+    form.style.display = 'none';
+    form.enctype = 'application/x-www-form-urlencoded';
+
+    const addField = (name, val) => {
+      const ta = document.createElement('textarea');
+      ta.name = name; ta.value = val;
+      form.appendChild(ta);
+    };
+    addField('vendor', selVendor.name);
+    addField('image', raw);
+    addField('tsTag', lastTsTag);
+    document.body.appendChild(form);
+
+    form.submit();
+
+    // form bhej diya — ab clean up (iframe load ka wait nahi karenge)
+    setTimeout(() => {
+      try { document.body.removeChild(form); } catch(e){}
+      try { document.body.removeChild(iframe); } catch(e){}
+    }, 8000);
+
+  } catch(err) {
+    showStatus('err', `❌ भेजने में दिक्कत: ${err.message}`);
+    btn.disabled = false;
+    btn.innerHTML = '☁️ Google Sheet पर भेजें';
+    return;
+  }
+
+  // Sheet update hone ka wait, phir verify (max 8 baar koshish — 20 sec tak)
+  let verified = false;
+  for (let attempt = 0; attempt < 8 && !verified; attempt++) {
+    await delay(2500);
+    try {
+      const vr = await fetch(
+        SCRIPT_URL + '?action=verify&vendor=' + encodeURIComponent(selVendor.name) + '&ts=' + lastTsTag,
+        { mode:'cors', cache:'no-store' }
+      );
+      const vd = await vr.json();
+      if (vd.status === 'ok' && vd.uploaded === true) verified = true;
+    } catch(e) { /* retry */ }
+  }
+
+  if (verified) {
+    showStatus('ok', `✅ "${selVendor.name}" की receipt save हो गई!\n📱 Phone में download + 📊 Sheet में record दोनों हो गए।`);
+    selFile = null;
+    document.getElementById('fileCam').value=''; document.getElementById('fileGal').value='';
+    document.getElementById('prevWrap').classList.remove('on');
+    document.getElementById('prevImg').src = '';
+  } else {
+    showStatus('err', `❌ Confirmation नहीं मिला।\nSheet का Payments tab check करें — हो सकता है पहुँच गई हो। नहीं तो दोबारा भेजें।`);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '☁️ Google Sheet पर भेजें';
+}
+
+// ════════════════════════════════
+//  HELPERS
+// ════════════════════════════════
+// Photo ko chhota (compress) karke base64 banao — taaki upload fast ho
+function toB64(f) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        // max 700px — chhoti image taaki upload pakka ho
+        const maxDim = 700;
+        let w = img.width, h = img.height;
+        if (w > h && w > maxDim) { h = h * maxDim / w; w = maxDim; }
+        else if (h > maxDim) { w = w * maxDim / h; h = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        // 55% quality JPEG — chhoti file
+        resolve(canvas.toDataURL('image/jpeg', 0.55));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(f);
+  });
+}
+function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function showStatus(type, msg) {
+  const b=document.getElementById('statusBox');
+  b.className='status '+type;
+  document.getElementById('sIco').textContent = type==='ok' ? '✅' : '❌';
+  document.getElementById('sMsg').textContent = msg;
+}
+function clearStatus(){ document.getElementById('statusBox').className='status'; }
+function reset() {
+  selVendor=null; selFile=null;
+  document.getElementById('qrSec').classList.remove('on');
+  document.getElementById('upSec').classList.remove('on');
+  document.getElementById('prevWrap').classList.remove('on');
+  document.getElementById('prevImg').src='';
+  document.getElementById('fileCam').value=''; document.getElementById('fileGal').value='';
+  document.getElementById('submitBtn').innerHTML='☁️ Google Sheet पर भेजें';
+  document.getElementById('submitBtn').disabled=false;
+  clearStatus();
+  document.getElementById('div1').style.display='none';
+  document.getElementById('div2').style.display='none';
+}
+</script>
+</body>
+</html>
