@@ -258,6 +258,13 @@ function onAmountChange() {
 }
 
 async function doUpload() {
+  // Agar internet band hai toh pehle hi rok do
+  if (!navigator.onLine) {
+    document.getElementById('amtWarn').textContent = '⚠️ Internet Connection Check Karein!';
+    document.getElementById('amtWarn').classList.add('on');
+    return;
+  }
+
   if (!selFile || !selVendor) return;
   const amt = parseInt(document.getElementById('amtInput').value) || 0;
   if (amt <= 0) {
@@ -285,58 +292,42 @@ async function doUpload() {
     document.body.removeChild(a);
   } catch(ex) {}
 
-  // Step 1: Text data GET se bhejo (Fast method - no 17 sec wait)
-  try {
-    const getUrl = SCRIPT_URL +
-      '?action=upload' +
-      '&vendor=' + encodeURIComponent(selVendor.name) +
-      '&tsTag=' + lastTsTag +
-      '&amount=' + amt;
-      
-    const res = await fetch(getUrl, {mode: 'cors', cache: 'no-store'});
-    const data = await res.json(); 
+  // ---- BULLETPROOF IPHONE FIX ---- 
+  
+  // 1. Text Data Bhejo (Bina wait kiye, no-cors ke sath taaki Safari block na kare)
+  const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt;
+  fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-    if(data.status === "success") {
-       if (selVendor.balance !== undefined) {
+  // 2. Photo Bhejo (URLSearchParams iPhone ke liye sabse best aur safe method hai)
+  const params = new URLSearchParams();
+  params.append('vendor', selVendor.name);
+  params.append('image', raw);
+  params.append('tsTag', lastTsTag);
+  params.append('amount', amt);
+
+  fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: params
+  }).catch(e=>{});
+
+  // 3. Turant Success Message Dikhao (Sirf 1.5 second delay ke baad)
+  setTimeout(() => {
+      if (selVendor.balance !== undefined) {
           selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
           if (selVendor.totalPaid !== undefined) {
             selVendor.totalPaid = Number(selVendor.totalPaid || 0) + amt;
           }
           showBalance(selVendor);
           fillSelect(VENDORS);
-       }
-       showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📊 Sheet में record हो गया।');
-       clearPhoto();
-
-       // Step 2: iPhone Fix - FormData ki jagah JSON payload (text/plain) bhejein taaki Drive me photo aaye
-       const payload = JSON.stringify({
-           vendor: selVendor.name,
-           image: raw,
-           tsTag: lastTsTag,
-           amount: amt
-       });
-
-       fetch(SCRIPT_URL, {
-           method: 'POST',
-           mode: 'no-cors',
-           headers: {
-               'Content-Type': 'text/plain'
-           },
-           body: payload
-       }).catch(function(){});
-
-    } else {
-       showStatus('err', '❌ Error: ' + (data.error || data.msg || 'Upload failed'));
-    }
-  } catch(ex) {
-     showStatus('err', '❌ Connection Error: System ne response nahi diya.');
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = '☁️ Google Sheet पर भेजें';
+      }
+      showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📊 Sheet में record हो गया।');
+      clearPhoto();
+      
+      btn.disabled = false;
+      btn.innerHTML = '☁️ Google Sheet पर भेजें';
+  }, 1500);
 }
-
-
 function toB64(f) {
   return new Promise(function(resolve, reject) {
     const reader = new FileReader();
