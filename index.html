@@ -271,63 +271,60 @@ async function doUpload() {
   btn.innerHTML = '<span class="spin"></span> भेज रहे हैं...';
   clearStatus();
 
-  let b64full;
   try {
-      b64full = await toB64(selFile);
-  } catch(e) {
-      showStatus('err', '❌ Photo process nahi ho paayi.');
-      btn.disabled = false;
-      btn.innerHTML = '☁️ Google Sheet पर भेजें';
-      return;
-  }
-  const raw = b64full.split(',')[1];
-  lastTsTag = String(Date.now()).slice(-6);
+    const b64full = await toB64(selFile);
+    const raw = b64full.split(',')[1];
+    lastTsTag = String(Date.now()).slice(-6);
 
-  // Phone mein photo download
-  try {
-    const a = document.createElement('a');
-    a.href = b64full;
-    a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  } catch(ex) {}
+    // Backup download
+    try {
+      const a = document.createElement('a');
+      a.href = b64full;
+      a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch(ex) {}
 
-  // 1. Text Data (Fast Sheet Update - No CORS block)
-  const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt;
-  fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
-
-  // 2. Image Data (Safe format for iPhone)
-  const payload = JSON.stringify({
+    // iPhone Safe Payload
+    const payload = JSON.stringify({
       vendor: selVendor.name,
       image: raw,
       tsTag: lastTsTag,
       amount: amt
-  });
+    });
 
-  fetch(SCRIPT_URL, {
+    // POST Request
+    const response = await fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
+      mode: 'cors',
       headers: { 'Content-Type': 'text/plain' },
       body: payload
-  }).catch(e=>{});
+    });
 
-  // 3. Fast UI Success
-  setTimeout(() => {
+    const data = await response.json();
+
+    if (data.status === 'success' || data.status === 'ok') {
       if (selVendor.balance !== undefined) {
-          selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
-          if (selVendor.totalPaid !== undefined) {
-            selVendor.totalPaid = Number(selVendor.totalPaid || 0) + amt;
-          }
-          showBalance(selVendor);
-          fillSelect(VENDORS);
+        selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
+        if (selVendor.totalPaid !== undefined) {
+          selVendor.totalPaid = Number(selVendor.totalPaid || 0) + amt;
+        }
+        showBalance(selVendor);
+        fillSelect(VENDORS);
       }
-      showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📊 Sheet में record हो गया।');
+      showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📊 Sheet aur Drive dono mein record ho gaya!');
       clearPhoto();
-      
-      btn.disabled = false;
-      btn.innerHTML = '☁️ Google Sheet पर भेजें';
-  }, 1800);
+    } else {
+      showStatus('err', '❌ Upload failed: ' + (data.error || 'Server error'));
+    }
+
+  } catch (error) {
+    showStatus('err', '❌ Connection Error: iPhone se request complete nahi hui.');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '☁️ Google Sheet पर भेजें';
 }
 
 function toB64(f) {
@@ -354,27 +351,3 @@ function toB64(f) {
 }
 
 function showStatus(type, msg) {
-  const b = document.getElementById('statusBox');
-  b.className = 'status ' + type;
-  document.getElementById('sIco').textContent = type === 'ok' ? '✅' : '❌';
-  document.getElementById('sMsg').textContent = msg;
-}
-
-function clearStatus() { document.getElementById('statusBox').className = 'status'; }
-
-function reset() {
-  selVendor = null; selFile = null;
-  document.getElementById('qrSec').classList.remove('on');
-  document.getElementById('upSec').classList.remove('on');
-  document.getElementById('balBox').classList.remove('on');
-  clearPhoto();
-  clearStatus();
-  document.getElementById('div1').style.display = 'none';
-  document.getElementById('div2').style.display = 'none';
-  btn = document.getElementById('submitBtn');
-  btn.innerHTML = '☁️ Google Sheet पर भेजें';
-  btn.disabled = false;
-}
-</script>
-</body>
-</html>
