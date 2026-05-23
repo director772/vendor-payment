@@ -269,83 +269,58 @@ async function doUpload() {
     lastTsTag = String(Date.now()).slice(-6);
 
     // ==========================================
-    // NAYA DOWNLOAD CODE (IPHONE & ANDROID SAFEST)
+    // STEP 1: PEHLE UPLOAD (await laga kar)
+    // Taki Safari upload ko cancel na kar paye!
     // ==========================================
-    try {
-      const parts = b64full.split(';base64,');
-      const contentType = parts[0].split(':')[1];
-      const rawB64 = window.atob(parts[1]);
-      const rawLength = rawB64.length;
-      const uInt8Array = new Uint8Array(rawLength);
-      
-      for (let i = 0; i < rawLength; ++i) {
-        uInt8Array[i] = rawB64.charCodeAt(i);
-      }
-      
-      const blob = new Blob([uInt8Array], {type: contentType});
-      const blobUrl = URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
-      document.body.appendChild(a);
-      a.click();
-      
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
-      }, 100);
-    } catch(ex) {
-      try {
-        const a = document.createElement('a');
-        a.href = b64full;
-        a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } catch(ex2) {}
-    }
-    // ==========================================
-
-    // 1. Text Data Fast Upload (iPhone Cache Buster)
+    
+    // Text Data Update (Fast)
     const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
-    fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
+    await fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-    // 2. Image Data Upload (iPhone URLSearchParams bypass)
+    // Image Data Upload 
     const formData = new URLSearchParams();
     formData.append('vendor', selVendor.name);
     formData.append('image', raw);
     formData.append('tsTag', lastTsTag);
     formData.append('amount', amt);
 
-    fetch(SCRIPT_URL, {
+    await fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData
     }).catch(e=>{});
 
-    // 3. UI Status (Bina wait kiye)
-    setTimeout(() => {
-      if (selVendor.balance !== undefined) {
-        selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
-        if (selVendor.totalPaid !== undefined) {
-          selVendor.totalPaid = Number(selVendor.totalPaid || 0) + amt;
-        }
-        showBalance(selVendor);
-        fillSelect(VENDORS);
+    // ==========================================
+    // STEP 2: UPLOAD HONE KE BAAD DOWNLOAD
+    // ==========================================
+    try {
+      const a = document.createElement('a');
+      a.href = b64full;
+      a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch(ex) {}
+
+    // ==========================================
+    // STEP 3: MESSAGE AUR SCREEN UPDATE
+    // ==========================================
+    if (selVendor.balance !== undefined) {
+      selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
+      if (selVendor.totalPaid !== undefined) {
+        selVendor.totalPaid = Number(selVendor.totalPaid || 0) + amt;
       }
-      
-      // ==========================================
-      // YAHAN HAI MESSAGE FIX
-      // Pehle screen saaf hogi, uske baad message aayega!
-      // ==========================================
-      clearPhoto(); 
-      showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Phone में Photo Download हो गई है।');
-      
-      btn.disabled = false;
-      btn.innerHTML = '☁️ Google Sheet पर भेजें';
-    }, 1200);
+      showBalance(selVendor);
+      fillSelect(VENDORS);
+    }
+    
+    // Pehle photo clear, phir Success Message ✅
+    clearPhoto(); 
+    showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Download और Sheet Upload दोनों हो गए।');
+    
+    btn.disabled = false;
+    btn.innerHTML = '☁️ Google Sheet पर भेजें';
 
   } catch (error) {
     showStatus('err', '❌ Error processing photo.');
