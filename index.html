@@ -19,15 +19,12 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
 .sel-wrap select:focus{border-color:#E8590C;box-shadow:0 0 0 3px rgba(232,89,12,0.12);}
 .sel-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:1.2rem;color:#E8590C;pointer-events:none;}
 .loading-note{font-size:0.75rem;color:#8C5A30;text-align:center;margin-bottom:10px;}
-
-/* AMOUNT BADGE in dropdown area */
 .bal-box{display:none;background:linear-gradient(135deg,#E8590C,#FF9800);border-radius:13px;padding:14px 18px;margin-bottom:18px;color:#fff;}
 .bal-box.on{display:block;animation:pop 0.3s ease;}
 .bal-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .bal-label{font-size:0.75rem;opacity:0.85;}
 .bal-amt{font-size:1.4rem;font-weight:800;}
 .bal-paid{font-size:0.8rem;opacity:0.9;}
-
 .divhr{height:1px;background:linear-gradient(to right,transparent,#FFD4B0,transparent);margin:4px 0 20px;}
 .qr-sec{display:none;flex-direction:column;align-items:center;margin-bottom:22px;}
 .qr-sec.on{display:flex;animation:pop 0.35s ease;}
@@ -39,8 +36,6 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
 .upi-badge{margin-top:10px;background:#FFF0E4;border:1.5px solid #FFD4B0;border-radius:10px;padding:6px 16px;font-size:0.78rem;font-weight:700;color:#8C5A30;}
 .upi-badge span{color:#E8590C;}
 .scan-tag{margin-top:8px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#E8590C;}
-
-/* UPLOAD */
 .up-sec{display:none;flex-direction:column;align-items:center;}
 .up-sec.on{display:flex;animation:pop 0.35s ease 0.08s both;}
 .up-btns{display:flex;gap:10px;width:100%;margin-bottom:4px;}
@@ -49,44 +44,27 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
 .up-btn-label input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .up-btn-icon{font-size:2rem;margin-bottom:4px;}
 .up-btn-text{font-size:0.9rem;font-weight:700;color:#2D1200;}
-
-/* PREVIEW */
 .prev-wrap{display:none;flex-direction:column;align-items:center;gap:12px;margin-top:14px;width:100%;}
 .prev-wrap.on{display:flex;}
 .prev-outer{position:relative;display:inline-block;}
 .prev-img{width:160px;height:160px;object-fit:cover;border-radius:14px;border:3px solid #E8590C;box-shadow:0 4px 16px rgba(232,89,12,0.2);display:block;}
 .prev-x{position:absolute;top:-8px;right:-8px;background:#E8590C;color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;}
-
-/* AI AMOUNT DETECT */
-.ai-detect{display:none;background:#FFF8E1;border:1.5px solid #FFD54F;border-radius:12px;padding:10px 14px;width:100%;font-size:0.82rem;color:#5D4037;}
-.ai-detect.on{display:block;animation:pop 0.3s ease;}
-.ai-detect-row{display:flex;align-items:center;gap:8px;}
-
-/* AMOUNT INPUT */
-.amt-section{display:none;width:100%;}
-.amt-section.on{display:block;animation:pop 0.3s ease;}
+.amt-section{width:100%;}
 .amt-label{font-size:0.75rem;font-weight:700;color:#E8590C;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
 .amt-input-wrap{position:relative;}
 .amt-rupee{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1.3rem;font-weight:800;color:#E8590C;}
-.amt-input{width:100%;padding:14px 14px 14px 38px;border-radius:13px;border:2.5px solid #E8590C;font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;color:#2D1200;background:#FFF7F0;outline:none;text-align:left;}
+.amt-input{width:100%;padding:14px 14px 14px 38px;border-radius:13px;border:2.5px solid #E8590C;font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;color:#2D1200;background:#FFF7F0;outline:none;}
 .amt-input:focus{box-shadow:0 0 0 3px rgba(232,89,12,0.15);}
 .amt-warning{display:none;background:#FFEBEE;border:1.5px solid #FFCDD2;border-radius:10px;padding:8px 12px;font-size:0.82rem;color:#B71C1C;margin-top:6px;}
 .amt-warning.on{display:block;}
-
-/* SUBMIT */
-.sbtn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#E8590C,#F5A623);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(232,89,12,0.32);transition:transform 0.15s;display:none;margin-top:8px;}
-.sbtn.on{display:block;}
+.sbtn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#E8590C,#F5A623);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(232,89,12,0.32);transition:transform 0.15s;margin-top:8px;}
 .sbtn:active{transform:scale(0.98);}
 .sbtn:disabled{opacity:0.6;cursor:not-allowed;}
-
-/* STATUS */
 .status{display:none;border-radius:13px;padding:14px 16px;font-size:0.9rem;font-weight:600;align-items:center;gap:10px;width:100%;margin-top:14px;line-height:1.5;}
 .status.ok{display:flex;background:#E8F5EC;color:#1B6B2F;border:1.5px solid #A5D6A7;}
 .status.err{display:flex;background:#FFEBEE;color:#B71C1C;border:1.5px solid #FFCDD2;}
 .spin{display:inline-block;width:16px;height:16px;border:3px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:rotate 0.7s linear infinite;vertical-align:middle;margin-right:7px;}
 @keyframes rotate{to{transform:rotate(360deg)}}
-
-/* INFO CARDS */
 .info-card{background:#fff;border-radius:18px;border:1.5px solid #FFD4B0;margin:14px 14px 0;padding:16px 20px;max-width:480px;margin-left:auto;margin-right:auto;}
 .info-card summary{font-weight:700;color:#E8590C;cursor:pointer;font-size:0.88rem;list-style:none;display:flex;align-items:center;gap:8px;}
 .info-card summary::-webkit-details-marker{display:none;}
@@ -94,14 +72,11 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
 </style>
 </head>
 <body>
-
 <div class="hdr">
   <h1>💳 Vendor Payment Portal</h1>
   <p>Vendor चुनें → QR Scan → Amount → Receipt Upload</p>
 </div>
-
 <div class="card">
-  <!-- VENDOR SELECT -->
   <div class="lbl">Vendor चुनें</div>
   <div class="sel-wrap">
     <select id="vSel" onchange="onVendor()">
@@ -109,8 +84,6 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
     </select>
   </div>
   <div class="loading-note" id="loadNote">Sheet से vendors load हो रहे हैं...</div>
-
-  <!-- BALANCE BOX -->
   <div class="bal-box" id="balBox">
     <div class="bal-row">
       <span class="bal-label">💰 कुल बाकी Amount</span>
@@ -118,10 +91,7 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
     </div>
     <div class="bal-paid" id="balPaid"></div>
   </div>
-
   <div class="divhr" id="div1" style="display:none"></div>
-
-  <!-- QR -->
   <div class="qr-sec" id="qrSec">
     <div class="vname" id="vName"></div>
     <div class="vsub">QR scan करें → Payment करें → नीचे Receipt upload करें</div>
@@ -129,10 +99,7 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
     <div class="upi-badge" id="upiBadge" style="display:none">UPI: <span id="upiShow"></span></div>
     <div class="scan-tag">📱 PhonePe / GPay / Paytm से Scan करें</div>
   </div>
-
   <div class="divhr" id="div2" style="display:none"></div>
-
-  <!-- UPLOAD -->
   <div class="up-sec" id="upSec">
     <div class="lbl" style="width:100%;margin-bottom:10px;">Payment Receipt Upload करें</div>
     <div class="up-btns">
@@ -147,24 +114,12 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
         <input type="file" id="fileGal" accept="image/*" onchange="onFile(event)">
       </label>
     </div>
-
-    <!-- PREVIEW -->
     <div class="prev-wrap" id="prevWrap">
       <div class="prev-outer">
         <img id="prevImg" class="prev-img" src="" alt="">
         <button class="prev-x" onclick="clearPhoto()">✕</button>
       </div>
-
-      <!-- AI DETECT -->
-      <div class="ai-detect" id="aiDetect">
-        <div class="ai-detect-row">
-          <span>🤖</span>
-          <span id="aiMsg">Receipt se amount detect kar raha hun...</span>
-        </div>
-      </div>
-
-      <!-- AMOUNT INPUT -->
-      <div class="amt-section" id="amtSection">
+      <div class="amt-section">
         <div class="amt-label">कितने पैसे भेजे? (Amount Paid)</div>
         <div class="amt-input-wrap">
           <span class="amt-rupee">₹</span>
@@ -172,38 +127,27 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
         </div>
         <div class="amt-warning" id="amtWarn"></div>
       </div>
-
-      <button class="sbtn on" id="submitBtn" onclick="doUpload()">☁️ Google Sheet पर भेजें</button>
+      <button class="sbtn" id="submitBtn" onclick="doUpload()">☁️ Google Sheet पर भेजें</button>
     </div>
   </div>
-
   <div class="status" id="statusBox">
     <span id="sIco" style="font-size:1.4rem"></span>
     <span id="sMsg"></span>
   </div>
 </div>
-
-<!-- INFO CARDS -->
 <details class="info-card">
-  <summary>[+] नया Vendor कैसे Add करें (आसान!)</summary>
-  <p>Sheet की <b>"Vendors"</b> tab खोलो → नई row में:<br>
-  A: Vendor Name &nbsp;|&nbsp; B: UPI ID &nbsp;|&nbsp; C: बाकी Amount (जैसे 15000)<br>
-  Page reload करो → vendor आ जाएगा! ✅</p>
+  <summary>[+] नया Vendor कैसे Add करें</summary>
+  <p>Sheet की <b>"Vendors"</b> tab → नई row → A: Vendor Name | B: UPI ID | C: बाकी Amount<br>Page reload करो → vendor आ जाएगा! ✅</p>
 </details>
-
 <details class="info-card">
   <summary>[+] सारी Payments कहाँ देखें</summary>
-  <p>Sheet की <b>"Payments"</b> tab खोलो — हर payment अलग row में, amount के साथ।</p>
+  <p>Sheet की <b>"Payments"</b> tab → हर payment अलग row में amount के साथ।</p>
 </details>
 
 <script>
-// ════════════════════════════════════════════
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwU-Ypzaru0eK20ncyqNmh7HpUczv0PqxaE9nVhbPPAqtqQVamariQ6eO8r1Aq2AXo/exec";
-const CLAUDE_API = "https://api.anthropic.com/v1/messages";
+let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
 
-let VENDORS = [], selVendor = null, selFile = null, selB64 = null, lastTsTag = "";
-
-// ── INIT ──
 window.onload = loadVendors;
 
 async function loadVendors() {
@@ -214,9 +158,9 @@ async function loadVendors() {
       VENDORS = d.vendors;
       fillSelect(VENDORS);
       document.getElementById('loadNote').style.display = 'none';
-      return;
+    } else {
+      throw new Error('no data');
     }
-    throw new Error('no data');
   } catch(e) {
     document.getElementById('loadNote').textContent = '⚠️ Vendors load नहीं हुए। Reload करें।';
     document.getElementById('vSel').innerHTML = '<option value="">— Reload करें —</option>';
@@ -226,18 +170,16 @@ async function loadVendors() {
 function fillSelect(list) {
   const s = document.getElementById('vSel');
   s.innerHTML = '<option value="">— Vendor Select करें —</option>';
-  list.forEach((v,i) => {
+  list.forEach(function(v, i) {
     const o = document.createElement('option');
     o.value = i;
-    // Amount ke saath naam
-    const amt = v.balance !== undefined && v.balance !== '' ?
-      ` — ₹${Number(v.balance).toLocaleString('en-IN')} बाकी` : '';
-    o.textContent = v.name + amt;
+    const bal = (v.balance !== undefined && v.balance !== '') ?
+      ' — ₹' + Number(v.balance).toLocaleString('en-IN') + ' बाकी' : '';
+    o.textContent = v.name + bal;
     s.appendChild(o);
   });
 }
 
-// ── VENDOR SELECT ──
 function onVendor() {
   const idx = parseInt(document.getElementById('vSel').value);
   reset();
@@ -254,7 +196,7 @@ function showBalance(v) {
   const box = document.getElementById('balBox');
   if (v.balance !== undefined && v.balance !== '' && Number(v.balance) >= 0) {
     document.getElementById('balAmt').textContent = '₹' + Number(v.balance).toLocaleString('en-IN');
-    const paid = v.totalPaid ? `अब तक दिया: ₹${Number(v.totalPaid).toLocaleString('en-IN')}` : '';
+    const paid = v.totalPaid ? 'अब तक दिया: ₹' + Number(v.totalPaid).toLocaleString('en-IN') : '';
     document.getElementById('balPaid').textContent = paid;
     box.classList.add('on');
   } else {
@@ -278,105 +220,43 @@ function showQR(v) {
   document.getElementById('qrSec').classList.add('on');
 }
 
-// ── FILE SELECT ──
 function onFile(e) {
-  const f = e.target.files[0]; if(!f) return;
+  const f = e.target.files[0];
+  if (!f) return;
   selFile = f;
   clearStatus();
   const r = new FileReader();
-  r.onload = ev => {
+  r.onload = function(ev) {
     document.getElementById('prevImg').src = ev.target.result;
     document.getElementById('prevWrap').classList.add('on');
-    // Seedha amount box dikhao — AI nahi
-    document.getElementById('aiDetect').style.display = 'none';
-    document.getElementById('amtSection').classList.add('on');
     document.getElementById('amtInput').focus();
   };
   r.readAsDataURL(f);
 }
 
 function clearPhoto() {
-  selFile = null; selB64 = null;
+  selFile = null;
   document.getElementById('prevWrap').classList.remove('on');
   document.getElementById('prevImg').src = '';
   document.getElementById('fileCam').value = '';
   document.getElementById('fileGal').value = '';
-  document.getElementById('aiDetect').classList.remove('on');
-  document.getElementById('amtSection').classList.remove('on');
   document.getElementById('amtInput').value = '';
   document.getElementById('amtWarn').classList.remove('on');
   clearStatus();
 }
 
-// ── AI AMOUNT DETECT ──
-async function detectAmountFromReceipt(dataUrl) {
-  const aiBox = document.getElementById('aiDetect');
-  const aiMsg = document.getElementById('aiMsg');
-  const amtSec = document.getElementById('amtSection');
-
-  aiBox.classList.add('on');
-  aiMsg.textContent = '🤖 Receipt से amount detect कर रहा हूं...';
-
-  try {
-    const base64 = dataUrl.split(',')[1];
-    const mimeMatch = dataUrl.match(/data:([^;]+);/);
-    const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-
-    const response = await fetch(CLAUDE_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 100,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: mime, data: base64 }
-            },
-            {
-              type: 'text',
-              text: 'This is a payment receipt. Extract ONLY the total/final payment amount paid. Reply with ONLY the number (digits only, no ₹ or Rs or text). If you cannot find an amount, reply with "0".'
-            }
-          ]
-        }]
-      })
-    });
-
-    const data = await response.json();
-    const raw = data.content?.[0]?.text?.trim() || '0';
-    const detected = parseInt(raw.replace(/[^0-9]/g, '')) || 0;
-
-    if (detected > 0) {
-      document.getElementById('amtInput').value = detected;
-      aiMsg.innerHTML = `✅ AI ne ₹${detected.toLocaleString('en-IN')} detect kiya — confirm karein ya badlein`;
-      onAmountChange();
-    } else {
-      aiMsg.textContent = '⚠️ Amount detect नहीं हुई — नीचे खुद भरें';
-    }
-  } catch(e) {
-    aiMsg.textContent = '⚠️ AI उपलब्ध नहीं — नीचे amount खुद भरें';
-  }
-
-  amtSec.classList.add('on');
-}
-
-// ── AMOUNT CHANGE ──
 function onAmountChange() {
   const amt = parseInt(document.getElementById('amtInput').value) || 0;
   const warn = document.getElementById('amtWarn');
   const balance = selVendor && selVendor.balance ? Number(selVendor.balance) : 0;
-
   if (balance > 0 && amt > balance) {
-    warn.textContent = `⚠️ Amount (₹${amt.toLocaleString('en-IN')}) बाकी रकम (₹${balance.toLocaleString('en-IN')}) से ज़्यादा है — check करें!`;
+    warn.textContent = '⚠️ Amount (₹' + amt.toLocaleString('en-IN') + ') बाकी रकम (₹' + balance.toLocaleString('en-IN') + ') से ज़्यादा है!';
     warn.classList.add('on');
   } else {
     warn.classList.remove('on');
   }
 }
 
-// ── UPLOAD ──
 async function doUpload() {
   if (!selFile || !selVendor) return;
   const amt = parseInt(document.getElementById('amtInput').value) || 0;
@@ -391,118 +271,115 @@ async function doUpload() {
   btn.innerHTML = '<span class="spin"></span> भेज रहे हैं...';
   clearStatus();
 
-  // Compress
   const b64full = await toB64(selFile);
   const raw = b64full.split(',')[1];
-
-  // Phone mein download
-  try {
-    const a = document.createElement('a');
-    a.href = b64full;
-    a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g,'_') + '_' + String(Date.now()).slice(-6) + '.jpg';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  } catch(e){}
-
   lastTsTag = String(Date.now()).slice(-6);
 
   // Phone mein download
   try {
     const a = document.createElement('a');
     a.href = b64full;
-    a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g,'_') + '_' + lastTsTag + '.jpg';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  } catch(e){}
+    a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch(ex) {}
 
-  // Upload — fetch with no-cors (works on iPhone Safari)
-  try {
-    const formData = new FormData();
-    formData.append('vendor', selVendor.name);
-    formData.append('image', raw);
-    formData.append('tsTag', lastTsTag);
-    formData.append('amount', amt);
+  // Upload via FormData
+  const formData = new FormData();
+  formData.append('vendor', selVendor.name);
+  formData.append('image', raw);
+  formData.append('tsTag', lastTsTag);
+  formData.append('amount', amt);
 
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: formData
-    }).catch(()=>{});
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: formData
+  }).catch(function() {});
 
-    // Wait for sheet to update
-    await delay(5000);
-
-    // Verify multiple times
-    let verified = false;
-    for (let i = 0; i < 6 && !verified; i++) {
-      await delay(2000);
-      try {
-        const vr = await fetch(
-          SCRIPT_URL + '?action=verify&vendor=' + encodeURIComponent(selVendor.name) + '&ts=' + lastTsTag,
-          {mode:'cors', cache:'no-store'}
-        );
-        const vd = await vr.json();
-        if (vd.status === 'ok' && vd.uploaded === true) verified = true;
-      } catch(e){}
-    }
-
-  if (verified) {
-    // Balance update karein locally
-    if (selVendor.balance !== undefined) {
-      const newBal = Math.max(0, Number(selVendor.balance) - amt);
-      selVendor.balance = newBal;
-      showBalance(selVendor);
-      // Dropdown bhi update karein
-      fillSelect(VENDORS);
-      document.getElementById('vSel').value = VENDORS.indexOf(selVendor);
-    }
-    showStatus('ok', `✅ "${selVendor.name}" को ₹${amt.toLocaleString('en-IN')} भेजे गए!\n📱 Phone में download + 📊 Sheet में record हो गया।`);
-    clearPhoto();
-  } else {
-    showStatus('err', `❌ Confirmation नहीं मिला। Sheet का Payments tab check करें।`);
+  // Wait then verify
+  await delay(5000);
+  let verified = false;
+  for (let i = 0; i < 6 && !verified; i++) {
+    await delay(2000);
+    try {
+      const vr = await fetch(
+        SCRIPT_URL + '?action=verify&vendor=' + encodeURIComponent(selVendor.name) + '&ts=' + lastTsTag,
+        {mode: 'cors', cache: 'no-store'}
+      );
+      const vd = await vr.json();
+      if (vd.status === 'ok' && vd.uploaded === true) {
+        verified = true;
+      }
+    } catch(ex) {}
   }
 
-  btn.disabled = false; btn.innerHTML = '☁️ Google Sheet पर भेजें';
+  if (verified) {
+    if (selVendor.balance !== undefined) {
+      selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
+      if (selVendor.totalPaid !== undefined) {
+        selVendor.totalPaid = Number(selVendor.totalPaid || 0) + amt;
+      }
+      showBalance(selVendor);
+      fillSelect(VENDORS);
+    }
+    showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Phone में download + 📊 Sheet में record हो गया।');
+    clearPhoto();
+  } else {
+    showStatus('err', '❌ Confirmation नहीं मिला। Sheet का Payments tab check करें।');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '☁️ Google Sheet पर भेजें';
 }
 
-// ── HELPERS ──
 function toB64(f) {
-  return new Promise((resolve,reject) => {
-    const r = new FileReader();
-    r.onload = e => {
+  return new Promise(function(resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
       const img = new Image();
-      img.onload = () => {
+      img.onload = function() {
         const maxDim = 700;
-        let w=img.width, h=img.height;
-        if(w>h&&w>maxDim){h=h*maxDim/w;w=maxDim;}
-        else if(h>maxDim){w=w*maxDim/h;h=maxDim;}
-        const c=document.createElement('canvas');
-        c.width=w;c.height=h;
-        c.getContext('2d').drawImage(img,0,0,w,h);
-        resolve(c.toDataURL('image/jpeg',0.6));
+        let w = img.width, h = img.height;
+        if (w > h && w > maxDim) { h = h * maxDim / w; w = maxDim; }
+        else if (h > maxDim) { w = w * maxDim / h; h = maxDim; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.6));
       };
-      img.onerror=reject; img.src=e.target.result;
+      img.onerror = reject;
+      img.src = e.target.result;
     };
-    r.onerror=reject; r.readAsDataURL(f);
+    reader.onerror = reject;
+    reader.readAsDataURL(f);
   });
 }
-function delay(ms){return new Promise(r=>setTimeout(r,ms));}
-function showStatus(type,msg){
-  const b=document.getElementById('statusBox');
-  b.className='status '+type;
-  document.getElementById('sIco').textContent=type==='ok'?'✅':'❌';
-  document.getElementById('sMsg').textContent=msg;
+
+function delay(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+
+function showStatus(type, msg) {
+  const b = document.getElementById('statusBox');
+  b.className = 'status ' + type;
+  document.getElementById('sIco').textContent = type === 'ok' ? '✅' : '❌';
+  document.getElementById('sMsg').textContent = msg;
 }
-function clearStatus(){document.getElementById('statusBox').className='status';}
-function reset(){
-  selVendor=null; selFile=null; selB64=null;
+
+function clearStatus() { document.getElementById('statusBox').className = 'status'; }
+
+function reset() {
+  selVendor = null; selFile = null;
   document.getElementById('qrSec').classList.remove('on');
   document.getElementById('upSec').classList.remove('on');
   document.getElementById('balBox').classList.remove('on');
   clearPhoto();
   clearStatus();
-  document.getElementById('div1').style.display='none';
-  document.getElementById('div2').style.display='none';
-  document.getElementById('submitBtn').innerHTML='☁️ Google Sheet पर भेजें';
-  document.getElementById('submitBtn').disabled=false;
+  document.getElementById('div1').style.display = 'none';
+  document.getElementById('div2').style.display = 'none';
+  btn = document.getElementById('submitBtn');
+  btn.innerHTML = '☁️ Google Sheet पर भेजें';
+  btn.disabled = false;
 }
 </script>
 </body>
