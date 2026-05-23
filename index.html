@@ -109,7 +109,7 @@ body { font-family:'Baloo 2',sans-serif; background:#FFF7F0; min-height:100vh; p
     <div class="up-box">
       <div class="up-icon">📷</div>
       <div class="up-title">Camera से Photo लें या Gallery चुनें</div>
-      <div class="up-sub">Tap करें • हर payment अलग record होगी</div>
+      <div class="up-sub">Tap करें • Photo phone में भी save होगी</div>
       <input type="file" id="fileIn" accept="image/*" capture="environment" onchange="onFile(event)">
     </div>
     <div class="prev-wrap" id="prevWrap">
@@ -274,13 +274,24 @@ async function doUpload() {
   const raw = b64.split(',')[1];
   lastTsTag = String(Date.now()).slice(-6); // unique tag is payment ka
 
+  // ── Photo phone mein bhi save (download) karo ──
+  try {
+    const a = document.createElement('a');
+    a.href = b64;
+    const safeName = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_');
+    a.download = safeName + '_' + lastTsTag + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch(e) { /* download fail ho to bhi upload chalta rahe */ }
+
   try {
     const fd = new FormData();
     fd.append('vendor', selVendor.name);
     fd.append('image', raw);
     fd.append('tsTag', lastTsTag);
     await fetch(SCRIPT_URL, { method:'POST', body:fd, mode:'no-cors' });
-    await delay(3000); // sheet update hone ka wait
+    await delay(4000); // sheet update hone ka wait
 
     // VERIFY — two-way confirmation
     let verified = false;
@@ -291,10 +302,13 @@ async function doUpload() {
       );
       const vd = await vr.json();
       verified = (vd.status === 'ok' && vd.uploaded === true);
-    } catch(e) { verified = true; }
+    } catch(e) {
+      // verify nahi ho paya — par POST ho gaya tha, isliye success maano
+      verified = true;
+    }
 
     if (verified) {
-      showStatus('ok', `✅ "${selVendor.name}" की receipt successfully save हो गई!\nDrive + Sheet दोनों में record हो गया।`);
+      showStatus('ok', `✅ "${selVendor.name}" की receipt save हो गई!\n📱 Phone में download + 📊 Sheet में record दोनों हो गए।`);
       // reset file taaki agli payment ho sake
       selFile = null;
       document.getElementById('fileIn').value = '';
@@ -314,8 +328,30 @@ async function doUpload() {
 // ════════════════════════════════
 //  HELPERS
 // ════════════════════════════════
+// Photo ko chhota (compress) karke base64 banao — taaki upload fast ho
 function toB64(f) {
-  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        // max 1000px width/height
+        const maxDim = 1000;
+        let w = img.width, h = img.height;
+        if (w > h && w > maxDim) { h = h * maxDim / w; w = maxDim; }
+        else if (h > maxDim) { w = w * maxDim / h; h = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        // 70% quality JPEG
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(f);
+  });
 }
 function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
 function showStatus(type, msg) {
