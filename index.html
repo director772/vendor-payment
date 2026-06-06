@@ -246,7 +246,7 @@ function onAmountChange() {
   } else { warn.classList.remove('on'); }
 }
 
-// NAYA MASTER FUNCTION (IPHONE SAFE)
+// NAYA MASTER FUNCTION (IPHONE FAST DOWNLOAD FIX KE SATH)
 async function submitAndSendWA() {
   if (!selFile || !selVendor) {
     alert("Kripya Vendor chunein और Receipt upload करें!");
@@ -259,18 +259,34 @@ async function submitAndSendWA() {
     return;
   }
 
+  // ---------------------------------------------------------
+  // 1. IPHONE SAFE DOWNLOAD (SABSE PEHLE BINA KISI DELAY KE)
+  // ---------------------------------------------------------
+  try {
+    const imgSrc = document.getElementById('prevImg').src; 
+    lastTsTag = String(Date.now()).slice(-6);
+    
+    const dLink = document.createElement('a');
+    dLink.href = imgSrc;
+    dLink.download = `${selVendor.name.replace(/[^a-zA-Z0-9]/g, '_')}_${amt}_${lastTsTag}.jpg`;
+    document.body.appendChild(dLink);
+    dLink.click(); 
+    document.body.removeChild(dLink);
+  } catch(ex) {
+    console.log("Download failed", ex);
+  }
+  // ---------------------------------------------------------
+
   const btn = document.getElementById('mainSubmitBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span> Processing...';
   clearStatus();
 
   try {
-    // 1. Photo Compression
+    // 2. Photo Compression & Google Sheet Upload (Background)
     const b64full = await toB64(selFile);
     const raw = b64full.split(',')[1];
-    lastTsTag = String(Date.now()).slice(-6);
 
-    // 2. Upload to Google Sheet (Background)
     const formData = new URLSearchParams();
     formData.append('vendor', selVendor.name);
     formData.append('image', raw);
@@ -302,12 +318,12 @@ async function submitAndSendWA() {
 
     btn.innerHTML = '✅ Done! WhatsApp खुल रहा है...';
 
-    // Safari Safe Delay
+    // Thoda delay taaki sheet ki request chali jaye
     setTimeout(() => {
         clearPhoto();
         reset();
         window.location.href = waUrl; 
-    }, 800);
+    }, 1200);
 
   } catch (error) {
     showStatus('err', '❌ Error processing. Dobara try करें।');
