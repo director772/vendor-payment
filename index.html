@@ -2,75 +2,73 @@
 <html lang="hi">
 <head>
   <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-
-<link rel="icon" type="image/png" sizes="180x180" href="logo.png">
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Vendor Payment Portal</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;padding-bottom:40px;}
-.hdr{background:linear-gradient(135deg,#C94A00,#E8590C 50%,#FF9800);padding:22px 20px 18px;text-align:center;box-shadow:0 3px 18px rgba(200,74,0,0.35);}
-.hdr h1{color:#fff;font-size:1.5rem;font-weight:800;}
-.hdr p{color:rgba(255,255,255,0.82);font-size:0.78rem;margin-top:3px;}
-.card{background:#fff;border-radius:22px;box-shadow:0 6px 32px rgba(200,74,0,0.10);border:1.5px solid #FFD4B0;margin:22px 14px 0;padding:24px 20px 28px;max-width:480px;margin-left:auto;margin-right:auto;}
-.lbl{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:#E8590C;margin-bottom:8px;}
-.sel-wrap{position:relative;margin-bottom:10px;}
-.sel-wrap select{width:100%;padding:13px 42px 13px 15px;border-radius:13px;border:2px solid #FFD4B0;background:#FFF7F0;font-family:inherit;font-size:1rem;font-weight:700;color:#2D1200;appearance:none;cursor:pointer;outline:none;transition:border 0.2s,box-shadow 0.2s;}
-.sel-wrap select:focus{border-color:#E8590C;box-shadow:0 0 0 3px rgba(232,89,12,0.12);}
-.sel-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:1.2rem;color:#E8590C;pointer-events:none;}
-.loading-note{font-size:0.75rem;color:#8C5A30;text-align:center;margin-bottom:10px;}
-.bal-box{display:none;background:linear-gradient(135deg,#E8590C,#FF9800);border-radius:13px;padding:14px 18px;margin-bottom:18px;color:#fff;}
-.bal-box.on{display:block;animation:pop 0.3s ease;}
-.bal-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-.bal-label{font-size:0.75rem;opacity:0.85;}
-.bal-amt{font-size:1.4rem;font-weight:800;}
-.bal-paid{font-size:0.8rem;opacity:0.9;}
-.divhr{height:1px;background:linear-gradient(to right,transparent,#FFD4B0,transparent);margin:4px 0 20px;}
-.qr-sec{display:none;flex-direction:column;align-items:center;margin-bottom:22px;}
-.qr-sec.on{display:flex;animation:pop 0.35s ease;}
-@keyframes pop{from{opacity:0;transform:scale(0.93)}to{opacity:1;transform:scale(1)}}
-.vname{font-size:1.2rem;font-weight:800;color:#2D1200;margin-bottom:3px;}
-.vsub{font-size:0.78rem;color:#8C5A30;margin-bottom:14px;text-align:center;}
-.qr-box{background:#fff;border:3px solid #E8590C;border-radius:20px;padding:14px;box-shadow:0 5px 24px rgba(232,89,12,0.20);}
-#qr-out canvas,#qr-out img{border-radius:8px;display:block;max-width:200px;max-height:200px;}
-.upi-badge{margin-top:10px;background:#FFF0E4;border:1.5px solid #FFD4B0;border-radius:10px;padding:6px 16px;font-size:0.78rem;font-weight:700;color:#8C5A30;}
-.upi-badge span{color:#E8590C;}
-.scan-tag{margin-top:8px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#E8590C;}
-.up-sec{display:none;flex-direction:column;align-items:center;}
-.up-sec.on{display:flex;animation:pop 0.35s ease 0.08s both;}
-.up-btns{display:flex;gap:10px;width:100%;margin-bottom:4px;}
-.up-btn-label{flex:1;border:2.5px dashed #FFD4B0;border-radius:16px;background:#FFF7F0;padding:20px 10px;text-align:center;cursor:pointer;position:relative;transition:border-color 0.2s,background 0.2s;}
-.up-btn-label:hover,.up-btn-label:active{border-color:#E8590C;background:#FFF0E4;}
-.up-btn-label input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.up-btn-icon{font-size:2rem;margin-bottom:4px;}
-.up-btn-text{font-size:0.9rem;font-weight:700;color:#2D1200;}
-.prev-wrap{display:none;flex-direction:column;align-items:center;gap:12px;margin-top:14px;width:100%;}
-.prev-wrap.on{display:flex;}
-.prev-outer{position:relative;display:inline-block;}
-.prev-img{width:160px;height:160px;object-fit:cover;border-radius:14px;border:3px solid #E8590C;box-shadow:0 4px 16px rgba(232,89,12,0.2);display:block;}
-.prev-x{position:absolute;top:-8px;right:-8px;background:#E8590C;color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;}
-.amt-section{width:100%;}
-.amt-label{font-size:0.75rem;font-weight:700;color:#E8590C;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-.amt-input-wrap{position:relative;}
-.amt-rupee{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1.3rem;font-weight:800;color:#E8590C;}
-.amt-input{width:100%;padding:14px 14px 14px 38px;border-radius:13px;border:2.5px solid #E8590C;font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;color:#2D1200;background:#FFF7F0;outline:none;}
-.amt-input:focus{box-shadow:0 0 0 3px rgba(232,89,12,0.15);}
-.amt-warning{display:none;background:#FFEBEE;border:1.5px solid #FFCDD2;border-radius:10px;padding:8px 12px;font-size:0.82rem;color:#B71C1C;margin-top:6px;}
-.amt-warning.on{display:block;}
-.sbtn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#E8590C,#F5A623);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(232,89,12,0.32);transition:transform 0.15s;margin-top:8px;}
-.sbtn:active{transform:scale(0.98);}
-.sbtn:disabled{opacity:0.6;cursor:not-allowed;}
-.sbtn-wa{background:linear-gradient(135deg,#25D366,#128C7E) !important;margin-top:10px;}
-.status{display:none;border-radius:13px;padding:14px 16px;font-size:0.9rem;font-weight:600;align-items:center;gap:10px;width:100%;margin-top:14px;line-height:1.5;white-space:pre-line;}
-.status.ok{display:flex;background:#E8F5EC;color:#1B6B2F;border:1.5px solid #A5D6A7;}
-.status.err{display:flex;background:#FFEBEE;color:#B71C1C;border:1.5px solid #FFCDD2;}
-.spin{display:inline-block;width:16px;height:16px;border:3px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:rotate 0.7s linear infinite;vertical-align:middle;margin-right:7px;}
-@keyframes rotate{to{transform:rotate(360deg)}}
-</style>
+  <link rel="icon" type="image/png" sizes="180x180" href="logo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vendor Payment Portal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;padding-bottom:40px;}
+    .hdr{background:linear-gradient(135deg,#C94A00,#E8590C 50%,#FF9800);padding:22px 20px 18px;text-align:center;box-shadow:0 3px 18px rgba(200,74,0,0.35);}
+    .hdr h1{color:#fff;font-size:1.5rem;font-weight:800;}
+    .hdr p{color:rgba(255,255,255,0.82);font-size:0.78rem;margin-top:3px;}
+    .card{background:#fff;border-radius:22px;box-shadow:0 6px 32px rgba(200,74,0,0.10);border:1.5px solid #FFD4B0;margin:22px 14px 0;padding:24px 20px 28px;max-width:480px;margin-left:auto;margin-right:auto;}
+    .lbl{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:#E8590C;margin-bottom:8px;}
+    .sel-wrap{position:relative;margin-bottom:10px;}
+    .sel-wrap select{width:100%;padding:13px 42px 13px 15px;border-radius:13px;border:2px solid #FFD4B0;background:#FFF7F0;font-family:inherit;font-size:1rem;font-weight:700;color:#2D1200;appearance:none;cursor:pointer;outline:none;transition:border 0.2s,box-shadow 0.2s;}
+    .sel-wrap select:focus{border-color:#E8590C;box-shadow:0 0 0 3px rgba(232,89,12,0.12);}
+    .sel-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:1.2rem;color:#E8590C;pointer-events:none;}
+    .loading-note{font-size:0.75rem;color:#8C5A30;text-align:center;margin-bottom:10px;}
+    .bal-box{display:none;background:linear-gradient(135deg,#E8590C,#FF9800);border-radius:13px;padding:14px 18px;margin-bottom:18px;color:#fff;}
+    .bal-box.on{display:block;animation:pop 0.3s ease;}
+    .bal-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+    .bal-label{font-size:0.75rem;opacity:0.85;}
+    .bal-amt{font-size:1.4rem;font-weight:800;}
+    .bal-paid{font-size:0.8rem;opacity:0.9;}
+    .divhr{height:1px;background:linear-gradient(to right,transparent,#FFD4B0,transparent);margin:4px 0 20px;}
+    .qr-sec{display:none;flex-direction:column;align-items:center;margin-bottom:22px;}
+    .qr-sec.on{display:flex;animation:pop 0.35s ease;}
+    @keyframes pop{from{opacity:0;transform:scale(0.93)}to{opacity:1;transform:scale(1)}}
+    .vname{font-size:1.2rem;font-weight:800;color:#2D1200;margin-bottom:3px;}
+    .vsub{font-size:0.78rem;color:#8C5A30;margin-bottom:14px;text-align:center;}
+    .qr-box{background:#fff;border:3px solid #E8590C;border-radius:20px;padding:14px;box-shadow:0 5px 24px rgba(232,89,12,0.20);}
+    #qr-out canvas,#qr-out img{border-radius:8px;display:block;max-width:200px;max-height:200px;}
+    .upi-badge{margin-top:10px;background:#FFF0E4;border:1.5px solid #FFD4B0;border-radius:10px;padding:6px 16px;font-size:0.78rem;font-weight:700;color:#8C5A30;}
+    .upi-badge span{color:#E8590C;}
+    .scan-tag{margin-top:8px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#E8590C;}
+    .up-sec{display:none;flex-direction:column;align-items:center;}
+    .up-sec.on{display:flex;animation:pop 0.35s ease 0.08s both;}
+    .up-btns{display:flex;gap:10px;width:100%;margin-bottom:4px;}
+    .up-btn-label{flex:1;border:2.5px dashed #FFD4B0;border-radius:16px;background:#FFF7F0;padding:20px 10px;text-align:center;cursor:pointer;position:relative;transition:border-color 0.2s,background 0.2s;}
+    .up-btn-label:hover,.up-btn-label:active{border-color:#E8590C;background:#FFF0E4;}
+    .up-btn-label input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .up-btn-icon{font-size:2rem;margin-bottom:4px;}
+    .up-btn-text{font-size:0.9rem;font-weight:700;color:#2D1200;}
+    .prev-wrap{display:none;flex-direction:column;align-items:center;gap:12px;margin-top:14px;width:100%;}
+    .prev-wrap.on{display:flex;}
+    .prev-outer{position:relative;display:inline-block;}
+    .prev-img{width:160px;height:160px;object-fit:cover;border-radius:14px;border:3px solid #E8590C;box-shadow:0 4px 16px rgba(232,89,12,0.2);display:block;}
+    .prev-x{position:absolute;top:-8px;right:-8px;background:#E8590C;color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;}
+    .amt-section{width:100%;}
+    .amt-label{font-size:0.75rem;font-weight:700;color:#E8590C;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+    .amt-input-wrap{position:relative;}
+    .amt-rupee{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1.3rem;font-weight:800;color:#E8590C;}
+    .amt-input{width:100%;padding:14px 14px 14px 38px;border-radius:13px;border:2.5px solid #E8590C;font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;color:#2D1200;background:#FFF7F0;outline:none;}
+    .amt-input:focus{box-shadow:0 0 0 3px rgba(232,89,12,0.15);}
+    .amt-warning{display:none;background:#FFEBEE;border:1.5px solid #FFCDD2;border-radius:10px;padding:8px 12px;font-size:0.82rem;color:#B71C1C;margin-top:6px;}
+    .amt-warning.on{display:block;}
+    .sbtn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#E8590C,#F5A623);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(232,89,12,0.32);transition:transform 0.15s;margin-top:8px;}
+    .sbtn:active{transform:scale(0.98);}
+    .sbtn:disabled{opacity:0.6;cursor:not-allowed;}
+    .sbtn-wa{background:linear-gradient(135deg,#25D366,#128C7E) !important;margin-top:10px;}
+    .status{display:none;border-radius:13px;padding:14px 16px;font-size:0.9rem;font-weight:600;align-items:center;gap:10px;width:100%;margin-top:14px;line-height:1.5;white-space:pre-line;}
+    .status.ok{display:flex;background:#E8F5EC;color:#1B6B2F;border:1.5px solid #A5D6A7;}
+    .status.err{display:flex;background:#FFEBEE;color:#B71C1C;border:1.5px solid #FFCDD2;}
+    .spin{display:inline-block;width:16px;height:16px;border:3px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:rotate 0.7s linear infinite;vertical-align:middle;margin-right:7px;}
+    @keyframes rotate{to{transform:rotate(360deg)}}
+  </style>
 </head>
 <body>
 <div class="hdr">
@@ -128,8 +126,11 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
         </div>
         <div class="amt-warning" id="amtWarn"></div>
       </div>
-      <button class="sbtn" id="submitBtn" onclick="doUpload()">☁️ Google Sheet पर भेजें</button>
-      <button class="sbtn sbtn-wa" onclick="sendWhatsApp()">💬 WhatsApp पर भेजें</button>
+      
+      <button class="sbtn sbtn-wa" id="mainSubmitBtn" onclick="submitAndSendWA()" style="font-size: 1.1rem; padding: 18px; margin-top: 16px;">
+        🚀 Submit & WhatsApp पर भेजें
+      </button>
+
     </div>
   </div>
   <div class="status" id="statusBox">
@@ -139,9 +140,8 @@ body{font-family:'Baloo 2',sans-serif;background:#FFF7F0;min-height:100vh;paddin
 </div>
 
 <script>
-// YAHAN APNA APPS SCRIPT KA URL PASTE KAREN 👇
+// APNA SCRIPT URL YAHI REHNE DEIN
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwU-Ypzaru0eK20ncyqNmh7HpUczv0PqxaE9nVhbPPAqtqQVamariQ6eO8r1Aq2AXo/exec";
-// ------------------------------------------
 
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
 
@@ -246,8 +246,12 @@ function onAmountChange() {
   } else { warn.classList.remove('on'); }
 }
 
-async function doUpload() {
-  if (!selFile || !selVendor) return;
+// NAYA MASTER FUNCTION (IPHONE SAFE)
+async function submitAndSendWA() {
+  if (!selFile || !selVendor) {
+    alert("Kripya Vendor chunein और Receipt upload करें!");
+    return;
+  }
   const amt = parseInt(document.getElementById('amtInput').value) || 0;
   if (amt <= 0) {
     document.getElementById('amtWarn').textContent = '⚠️ Amount भरना ज़रूरी है!';
@@ -255,19 +259,18 @@ async function doUpload() {
     return;
   }
 
-  const btn = document.getElementById('submitBtn');
+  const btn = document.getElementById('mainSubmitBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Google को भेज रहे हैं...';
+  btn.innerHTML = '<span class="spin"></span> Processing...';
   clearStatus();
 
   try {
+    // 1. Photo Compression
     const b64full = await toB64(selFile);
     const raw = b64full.split(',')[1];
     lastTsTag = String(Date.now()).slice(-6);
 
-    const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
-    fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
-
+    // 2. Upload to Google Sheet (Background)
     const formData = new URLSearchParams();
     formData.append('vendor', selVendor.name);
     formData.append('image', raw);
@@ -281,18 +284,7 @@ async function doUpload() {
       body: formData
     }).catch(e=>{});
 
-    btn.innerHTML = '<span class="spin"></span> Sheet Update हो रही है...';
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    try {
-      const a = document.createElement('a');
-      a.href = b64full;
-      a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch(ex) {}
-
+    // 3. UI Update (Balance)
     if (selVendor.balance !== undefined) {
       selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
       if (selVendor.totalPaid !== undefined) {
@@ -301,28 +293,27 @@ async function doUpload() {
       showBalance(selVendor);
       fillSelect(VENDORS);
     }
+
+    // 4. Prepare WhatsApp URL & Auto-Redirect
+    let waPhone = selVendor.phone ? selVendor.phone : ""; 
+    let waMsg = `Hello ${selVendor.name},\n\nPayment of ₹${amt.toLocaleString('en-IN')} has been done. \n\nReceipt portal par upload ho gayi hai.`;
     
-    clearPhoto(); 
-    showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Download और Sheet Upload दोनों हो गए।');
-    
-    btn.disabled = false;
-    btn.innerHTML = '☁️ Google Sheet पर भेजें';
+    let waUrl = waPhone ? `https://wa.me/91${waPhone}?text=${encodeURIComponent(waMsg)}` : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+
+    btn.innerHTML = '✅ Done! WhatsApp खुल रहा है...';
+
+    // Safari Safe Delay
+    setTimeout(() => {
+        clearPhoto();
+        reset();
+        window.location.href = waUrl; 
+    }, 800);
 
   } catch (error) {
-    showStatus('err', '❌ Error processing photo.');
+    showStatus('err', '❌ Error processing. Dobara try करें।');
     btn.disabled = false;
-    btn.innerHTML = '☁️ Google Sheet पर भेजें';
+    btn.innerHTML = '🚀 Submit & WhatsApp पर भेजें';
   }
-}
-
-// WhatsApp Function
-function sendWhatsApp() {
-  const amt = document.getElementById('amtInput').value;
-  if (!selVendor) { alert('Vendor Select करें!'); return; }
-  if (!amt || amt <= 0) { alert('Amount भरना ज़रूरी है!'); return; }
-  
-  const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt upload हो गई है।";
-  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function toB64(f) {
@@ -366,8 +357,8 @@ function reset() {
   clearStatus();
   document.getElementById('div1').style.display = 'none';
   document.getElementById('div2').style.display = 'none';
-  btn = document.getElementById('submitBtn');
-  btn.innerHTML = '☁️ Google Sheet पर भेजें';
+  const btn = document.getElementById('mainSubmitBtn');
+  btn.innerHTML = '🚀 Submit & WhatsApp पर भेजें';
   btn.disabled = false;
 }
 </script>
