@@ -246,7 +246,7 @@ function onAmountChange() {
   } else { warn.classList.remove('on'); }
 }
 
-// NAYA MASTER FUNCTION (IPHONE FAST DOWNLOAD FIX KE SATH)
+// SMART AUTO-DETECT FUNCTION (IPHONE VS ANDROID)
 async function submitAndSendWA() {
   if (!selFile || !selVendor) {
     alert("Kripya Vendor chunein और Receipt upload करें!");
@@ -259,34 +259,30 @@ async function submitAndSendWA() {
     return;
   }
 
-  // ---------------------------------------------------------
-  // 1. IPHONE SAFE DOWNLOAD (SABSE PEHLE BINA KISI DELAY KE)
-  // ---------------------------------------------------------
-  try {
-    const imgSrc = document.getElementById('prevImg').src; 
-    lastTsTag = String(Date.now()).slice(-6);
-    
-    const dLink = document.createElement('a');
-    dLink.href = imgSrc;
-    dLink.download = `${selVendor.name.replace(/[^a-zA-Z0-9]/g, '_')}_${amt}_${lastTsTag}.jpg`;
-    document.body.appendChild(dLink);
-    dLink.click(); 
-    document.body.removeChild(dLink);
-  } catch(ex) {
-    console.log("Download failed", ex);
-  }
-  // ---------------------------------------------------------
-
   const btn = document.getElementById('mainSubmitBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Processing...';
   clearStatus();
 
   try {
-    // 2. Photo Compression & Google Sheet Upload (Background)
+    // 1. Photo Compression
     const b64full = await toB64(selFile);
     const raw = b64full.split(',')[1];
+    lastTsTag = String(Date.now()).slice(-6);
 
+    // 2. DOWNLOAD TRIGGER (Har device ke liye)
+    try {
+      const forceDownloadStr = b64full.replace("image/jpeg", "application/octet-stream");
+      const dLink = document.createElement('a');
+      dLink.href = forceDownloadStr;
+      dLink.download = `${selVendor.name.replace(/[^a-zA-Z0-9]/g, '_')}_${amt}_${lastTsTag}.jpg`;
+      document.body.appendChild(dLink);
+      dLink.click(); 
+      document.body.removeChild(dLink);
+    } catch(ex) {
+      console.log("Download failed", ex);
+    }
+
+    // 3. Google Sheet Upload (Background Process)
     const formData = new URLSearchParams();
     formData.append('vendor', selVendor.name);
     formData.append('image', raw);
@@ -300,7 +296,7 @@ async function submitAndSendWA() {
       body: formData
     }).catch(e=>{});
 
-    // 3. UI Update (Balance)
+    // 4. UI Update (Balance)
     if (selVendor.balance !== undefined) {
       selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
       if (selVendor.totalPaid !== undefined) {
@@ -310,20 +306,43 @@ async function submitAndSendWA() {
       fillSelect(VENDORS);
     }
 
-    // 4. Prepare WhatsApp URL & Auto-Redirect
+    // 5. Prepare WhatsApp URL
     let waPhone = selVendor.phone ? selVendor.phone : ""; 
     let waMsg = `Hello ${selVendor.name},\n\nPayment of ₹${amt.toLocaleString('en-IN')} has been done. \n\nReceipt portal par upload ho gayi hai.`;
-    
     let waUrl = waPhone ? `https://wa.me/91${waPhone}?text=${encodeURIComponent(waMsg)}` : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
 
-    btn.innerHTML = '✅ Done! WhatsApp खुल रहा है...';
+    // 6. DEVICE DETECTION LOGIC (iOS vs Android)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-    // Thoda delay taaki sheet ki request chali jaye
-    setTimeout(() => {
-        clearPhoto();
-        reset();
-        window.location.href = waUrl; 
-    }, 1200);
+    if (isIOS) {
+      // iPhone ke liye 6 second ka timer
+      let timeLeft = 6;
+      btn.innerHTML = `⬇️ 'Download' दबाएं... (${timeLeft}s)`;
+
+      let countdownInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft > 0) {
+          btn.innerHTML = `⬇️ 'Download' दबाएं... (${timeLeft}s)`;
+        } else {
+          clearInterval(countdownInterval);
+          btn.innerHTML = '✅ WhatsApp खुल रहा है...';
+          clearPhoto();
+          reset();
+          window.location.href = waUrl; 
+        }
+      }, 1000);
+      
+    } else {
+      // Android ke liye Fast Mode (Bina timer ke hand to hand)
+      btn.innerHTML = '✅ WhatsApp खुल रहा है...';
+      
+      // Sirf 1 second ka gap taaki Google sheet par proper entry chali jaye
+      setTimeout(() => {
+          clearPhoto();
+          reset();
+          window.location.href = waUrl; 
+      }, 1000);
+    }
 
   } catch (error) {
     showStatus('err', '❌ Error processing. Dobara try करें।');
