@@ -60,10 +60,10 @@
     .amt-input:focus{box-shadow:0 0 0 3px rgba(232,89,12,0.15);}
     .amt-warning{display:none;background:#FFEBEE;border:1.5px solid #FFCDD2;border-radius:10px;padding:8px 12px;font-size:0.82rem;color:#B71C1C;margin-top:6px;}
     .amt-warning.on{display:block;}
-    .sbtn{width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#E8590C,#F5A623);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(232,89,12,0.32);transition:transform 0.15s;margin-top:8px;}
+    .sbtn{width:100%;padding:16px;border-radius:13px;border:none;background:linear-gradient(135deg,#E8590C,#F5A623);color:#fff;font-family:inherit;font-size:1.1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(232,89,12,0.32);transition:transform 0.15s;margin-top:8px;}
     .sbtn:active{transform:scale(0.98);}
     .sbtn:disabled{opacity:0.6;cursor:not-allowed;}
-    .sbtn-wa{background:linear-gradient(135deg,#25D366,#128C7E) !important;margin-top:10px;}
+    .sbtn-wa{background:linear-gradient(135deg,#25D366,#128C7E) !important;margin-top:10px; box-shadow:0 4px 16px rgba(37,211,102,0.32) !important;}
     .status{display:none;border-radius:13px;padding:14px 16px;font-size:0.9rem;font-weight:600;align-items:center;gap:10px;width:100%;margin-top:14px;line-height:1.5;white-space:pre-line;}
     .status.ok{display:flex;background:#E8F5EC;color:#1B6B2F;border:1.5px solid #A5D6A7;}
     .status.err{display:flex;background:#FFEBEE;color:#B71C1C;border:1.5px solid #FFCDD2;}
@@ -128,8 +128,9 @@
         </div>
         <div class="amt-warning" id="amtWarn"></div>
       </div>
-      <button class="sbtn" id="submitBtn" onclick="doUpload()">☁️ Google Sheet पर भेजें</button>
-      <button class="sbtn sbtn-wa" onclick="sendWhatsApp()">💬 WhatsApp पर भेजें</button>
+      
+      <button class="sbtn" id="submitBtn" onclick="doUpload()">🚀 Submit & WhatsApp</button>
+      
     </div>
   </div>
   <div class="status" id="statusBox">
@@ -139,7 +140,7 @@
 </div>
 
 <script>
-// AAPKA SCRIPT URL
+// AAPKA WORKING URL
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylak9oYGymqMOPA3zffIXYQjs3QmmtSA0Zutdeh-E9AD_iVQDIwuvosZs33NEFWaM/exec";
 
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
@@ -259,12 +260,6 @@ function onAmountChange() {
   } else { warn.classList.remove('on'); }
 }
 
-function getWaUrl(phone) {
-  let p = phone ? String(phone).replace(/\D/g, '') : "";
-  if(p.length === 10) p = "91" + p;
-  return p ? "https://wa.me/" + p : "https://wa.me/";
-}
-
 async function doUpload() {
   if (!selFile || !selVendor) return;
   const amt = parseInt(document.getElementById('amtInput').value) || 0;
@@ -284,11 +279,9 @@ async function doUpload() {
     const raw = b64full.split(',')[1];
     lastTsTag = String(Date.now()).slice(-6);
 
-    // GET Request 
     const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
     fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-    // PHOTO UPLOAD FIX: Payload format wapas purana wala kar diya (Text/Plain bypass preflight)
     const payload = JSON.stringify({
       vendor: selVendor.name,
       image: raw,
@@ -329,32 +322,37 @@ async function doUpload() {
     clearPhoto(); 
     showStatus('ok', '✅ Photo aur Data Update dono ho gaye!');
     
-    btn.disabled = false;
-    btn.innerHTML = '☁️ Google Sheet पर भेजें';
+    // WHATSAPP REDIRECT LOGIC
+    const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt sheet par update ho gayi hai.";
+    let p = selVendor.phone ? String(selVendor.phone).replace(/\D/g, '') : "";
+    if(p.length === 10) p = "91" + p;
+    const waUrl = p ? "https://wa.me/" + p + "?text=" + encodeURIComponent(msg) : "https://wa.me/?text=" + encodeURIComponent(msg);
 
-    // AUTO WHATSAPP REDIRECT
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
     if (!isIOS) {
-      const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt portal par upload ho gayi hai.";
-      const waUrl = getWaUrl(selVendor.phone) + '?text=' + encodeURIComponent(msg);
-      setTimeout(() => { window.location.href = waUrl; }, 500);
+      // ANDROID - Direct Whatsapp khulega
+      btn.innerHTML = '✅ WhatsApp खुल रहा है...';
+      setTimeout(() => { 
+        window.location.href = waUrl; 
+        setTimeout(reset, 1500);
+      }, 500);
+    } else {
+      // iPHONE - Button hare (green) rang ka ban jayega
+      btn.disabled = false;
+      btn.innerHTML = '💬 WhatsApp पर भेजें';
+      btn.className = 'sbtn sbtn-wa';
+      btn.onclick = function() {
+        window.location.href = waUrl;
+        setTimeout(reset, 1500);
+      };
     }
 
   } catch (error) {
     showStatus('err', '❌ Error processing photo.');
     btn.disabled = false;
-    btn.innerHTML = '☁️ Google Sheet पर भेजें';
+    btn.innerHTML = '🚀 Submit & WhatsApp';
   }
-}
-
-function sendWhatsApp() {
-  const amt = document.getElementById('amtInput').value;
-  if (!selVendor) { alert('Vendor Select करें!'); return; }
-  
-  const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + (amt || 'Paid') + "\n\nReceipt portal par update ho gayi hai.";
-  const waUrl = getWaUrl(selVendor.phone) + '?text=' + encodeURIComponent(msg);
-  window.open(waUrl, '_blank');
 }
 
 function toB64(f) {
@@ -398,8 +396,12 @@ function reset() {
   clearStatus();
   document.getElementById('div1').style.display = 'none';
   document.getElementById('div2').style.display = 'none';
+  
+  // BUTTON KO WAPAS NORMAL KARNA
   const btn = document.getElementById('submitBtn');
-  btn.innerHTML = '☁️ Google Sheet पर भेजें';
+  btn.innerHTML = '🚀 Submit & WhatsApp';
+  btn.className = 'sbtn';
+  btn.onclick = doUpload;
   btn.disabled = false;
   
   document.getElementById('vPhone').style.display = 'none';
