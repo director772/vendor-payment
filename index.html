@@ -139,7 +139,7 @@
 </div>
 
 <script>
-// AAPKA LATEST NAYA URL YAHAN FIX KAR DIYA GAYA HAI 👇
+// AAPKA LATEST URL FIX HAI
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylak9oYGymqMOPA3zffIXYQjs3QmmtSA0Zutdeh-E9AD_iVQDIwuvosZs33NEFWaM/exec";
 
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
@@ -287,17 +287,19 @@ async function doUpload() {
     const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
     fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-    const formData = new URLSearchParams();
-    formData.append('vendor', selVendor.name);
-    formData.append('image', raw);
-    formData.append('tsTag', lastTsTag);
-    formData.append('amount', amt);
-
+    // PHOTO CORRUPTION ISSUE FIXED HERE (JSON method restored)
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData
+      headers: {
+        'Content-Type': 'text/plain'
+      },
+      body: JSON.stringify({
+        vendor: selVendor.name,
+        image: raw,
+        tsTag: lastTsTag,
+        amount: amt
+      })
     }).catch(e=>{});
 
     btn.innerHTML = '<span class="spin"></span> Sheet Update हो रही है...';
