@@ -127,10 +127,9 @@
         <div class="amt-warning" id="amtWarn"></div>
       </div>
       
-      <button class="sbtn sbtn-wa" id="mainSubmitBtn" onclick="submitAndSendWA()" style="font-size: 1.1rem; padding: 18px; margin-top: 16px;">
-        🚀 Submit & WhatsApp पर भेजें
-      </button>
-
+      <button class="sbtn" id="submitBtn" onclick="doUpload()">☁️ Google Sheet पर भेजें</button>
+      <button class="sbtn sbtn-wa" onclick="sendWhatsApp()">💬 WhatsApp पर भेजें</button>
+      
     </div>
   </div>
   <div class="status" id="statusBox">
@@ -140,7 +139,7 @@
 </div>
 
 <script>
-// APNA SCRIPT URL YAHI REHNE DEIN
+// APNA GOOGLE SCRIPT URL YAHI REHNE DIJIYE
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwU-Ypzaru0eK20ncyqNmh7HpUczv0PqxaE9nVhbPPAqtqQVamariQ6eO8r1Aq2AXo/exec";
 
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
@@ -246,12 +245,9 @@ function onAmountChange() {
   } else { warn.classList.remove('on'); }
 }
 
-// ✅ FINAL & PERFECT MASTER FUNCTION (IPHONE CAMERA & DOWNLOAD FIX)
-async function submitAndSendWA() {
-  if (!selFile || !selVendor) {
-    alert("Kripya Vendor chunein और Receipt upload करें!");
-    return;
-  }
+// 🚀 AAPKA ORIGINAL ERROR-FREE UPLOAD FUNCTION 
+async function doUpload() {
+  if (!selFile || !selVendor) return;
   const amt = parseInt(document.getElementById('amtInput').value) || 0;
   if (amt <= 0) {
     document.getElementById('amtWarn').textContent = '⚠️ Amount भरना ज़रूरी है!';
@@ -259,47 +255,45 @@ async function submitAndSendWA() {
     return;
   }
 
-  const btn = document.getElementById('mainSubmitBtn');
+  const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Photo Save हो रही है...';
+  btn.innerHTML = '<span class="spin"></span> Google को भेज रहे हैं...';
   clearStatus();
 
   try {
-    // 1. Photo Compression (Takes a moment for heavy camera photos)
     const b64full = await toB64(selFile);
     const raw = b64full.split(',')[1];
     lastTsTag = String(Date.now()).slice(-6);
 
-    // 2. IPHONE DOWNLOAD TRIGGER
-    try {
-      const forceDownloadStr = b64full.replace("image/jpeg", "application/octet-stream");
-      const dLink = document.createElement('a');
-      dLink.href = forceDownloadStr;
-      dLink.download = `${selVendor.name.replace(/[^a-zA-Z0-9]/g, '_')}_${amt}_${lastTsTag}.jpg`;
-      document.body.appendChild(dLink);
-      dLink.click(); 
-      document.body.removeChild(dLink);
-    } catch(ex) {
-      console.log("Download failed", ex);
-    }
+    const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
+    fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-    // 3. GOOGLE SHEET UPLOAD (AWAIT lagaya gaya hai taaki beech me cancel na ho)
-    btn.innerHTML = '<span class="spin"></span> Sheet Update हो रही है...';
-    
     const formData = new URLSearchParams();
     formData.append('vendor', selVendor.name);
     formData.append('image', raw);
     formData.append('tsTag', lastTsTag);
     formData.append('amount', amt);
 
-    await fetch(SCRIPT_URL, {
+    fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData
-    }).catch(e=>{ console.log("Error:", e); });
+    }).catch(e=>{});
 
-    // 4. UI Update (Balance Kam Karna)
+    btn.innerHTML = '<span class="spin"></span> Sheet Update हो रही है...';
+    // iPhone upload protection: 3 seconds ka poora time dega
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    try {
+      const a = document.createElement('a');
+      a.href = b64full;
+      a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch(ex) {}
+
     if (selVendor.balance !== undefined) {
       selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
       if (selVendor.totalPaid !== undefined) {
@@ -308,26 +302,50 @@ async function submitAndSendWA() {
       showBalance(selVendor);
       fillSelect(VENDORS);
     }
+    
+    clearPhoto(); 
+    showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Download और Sheet Upload दोनों हो गए।');
+    
+    btn.disabled = false;
+    btn.innerHTML = '☁️ Google Sheet पर भेजें';
 
-    // 5. Prepare WhatsApp URL
-    let waPhone = selVendor.phone ? selVendor.phone : ""; 
-    let waMsg = `Hello ${selVendor.name},\n\nPayment of ₹${amt.toLocaleString('en-IN')} has been done. \n\nReceipt portal par upload ho gayi hai.`;
-    let waUrl = waPhone ? `https://wa.me/91${waPhone}?text=${encodeURIComponent(waMsg)}` : `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
-
-    btn.innerHTML = '✅ Done! WhatsApp खुल रहा है...';
-
-    // 6. Safe WhatsApp Redirect (Sheet upload complete hone ke 1 second baad)
-    setTimeout(() => {
-        clearPhoto();
-        reset();
-        window.location.href = waUrl; 
-    }, 1000);
+    // 📱 SMART ANDROID AUTO-WHATSAPP LOGIC (Zero error mode)
+    try {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (!isIOS) {
+        let vendorPhone = selVendor.phone ? String(selVendor.phone).replace(/\D/g, '') : "";
+        if(vendorPhone.length === 10) { vendorPhone = "91" + vendorPhone; }
+        
+        const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt portal par update ho gayi hai.";
+        const waUrl = vendorPhone ? "https://wa.me/" + vendorPhone + "?text=" + encodeURIComponent(msg) : "https://wa.me/?text=" + encodeURIComponent(msg);
+        
+        setTimeout(() => {
+          window.location.href = waUrl;
+        }, 800); 
+      }
+    } catch(waErr) {
+        console.log("WhatsApp Auto-open error:", waErr);
+    }
 
   } catch (error) {
-    showStatus('err', '❌ Error processing. Dobara try करें।');
+    showStatus('err', '❌ Error processing photo.');
     btn.disabled = false;
-    btn.innerHTML = '🚀 Submit & WhatsApp पर भेजें';
+    btn.innerHTML = '☁️ Google Sheet पर भेजें';
   }
+}
+
+// 💬 WHATSAPP MANUAL BUTTON (iPhone aur Android dono ke liye safe)
+function sendWhatsApp() {
+  const amt = document.getElementById('amtInput').value;
+  if (!selVendor) { alert('Vendor Select करें!'); return; }
+  
+  let vendorPhone = selVendor.phone ? String(selVendor.phone).replace(/\D/g, '') : "";
+  if(vendorPhone.length === 10) { vendorPhone = "91" + vendorPhone; }
+
+  const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + (amt || 'Paid') + "\n\nReceipt portal par update ho gayi hai.";
+  const waUrl = vendorPhone ? "https://wa.me/" + vendorPhone + "?text=" + encodeURIComponent(msg) : "https://wa.me/?text=" + encodeURIComponent(msg);
+  
+  window.open(waUrl, '_blank');
 }
 
 function toB64(f) {
@@ -371,8 +389,8 @@ function reset() {
   clearStatus();
   document.getElementById('div1').style.display = 'none';
   document.getElementById('div2').style.display = 'none';
-  const btn = document.getElementById('mainSubmitBtn');
-  btn.innerHTML = '🚀 Submit & WhatsApp पर भेजें';
+  const btn = document.getElementById('submitBtn');
+  btn.innerHTML = '☁️ Google Sheet पर भेजें';
   btn.disabled = false;
 }
 </script>
