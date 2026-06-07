@@ -143,7 +143,8 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwU-Ypzaru0eK20ncyqNmh7HpUczv0PqxaE9nVhbPPAqtqQVamariQ6eO8r1Aq2AXo/exec";
+// YAHAN MAINE AAPKA EXACT NAYA WALA URL UPDATE KAR DIYA HAI 👇
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNY1k6EnwbBRdojogoli70oZq_OSgsImoVFxwPNWRf58LBOx7V14qpazysEa8OYFk/exec";
 
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
 
@@ -191,7 +192,7 @@ function onVendor() {
       phoneBox.style.borderColor = "#A5D6A7";
       phoneBox.style.display = "inline-block";
   } else {
-      phoneBox.innerHTML = "⚠️ Number sheet me nahi mila (Column E check karein / Deploy karein)";
+      phoneBox.innerHTML = "⚠️ Number sheet me nahi mila (Column E check karein)";
       phoneBox.style.color = "#B71C1C";
       phoneBox.style.background = "#FFEBEE";
       phoneBox.style.borderColor = "#FFCDD2";
@@ -265,7 +266,6 @@ function onAmountChange() {
   } else { warn.classList.remove('on'); }
 }
 
-// ── Link Maker Helper ──
 function getWaUrl(phone) {
   let p = phone ? String(phone).replace(/\D/g, '') : "";
   if(p.length === 10) p = "91" + p;
