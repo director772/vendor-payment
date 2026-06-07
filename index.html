@@ -94,9 +94,7 @@
   <div class="divhr" id="div1" style="display:none"></div>
   <div class="qr-sec" id="qrSec">
     <div class="vname" id="vName"></div>
-    
     <div id="vPhone"></div>
-
     <div class="vsub">QR scan करें → Payment करें → नीचे Receipt upload करें</div>
     <div class="qr-box"><div id="qr-out"></div></div>
     <div class="upi-badge" id="upiBadge" style="display:none">UPI: <span id="upiShow"></span></div>
@@ -130,10 +128,8 @@
         </div>
         <div class="amt-warning" id="amtWarn"></div>
       </div>
-      
       <button class="sbtn" id="submitBtn" onclick="doUpload()">☁️ Google Sheet पर भेजें</button>
       <button class="sbtn sbtn-wa" onclick="sendWhatsApp()">💬 WhatsApp पर भेजें</button>
-      
     </div>
   </div>
   <div class="status" id="statusBox">
@@ -143,7 +139,7 @@
 </div>
 
 <script>
-// YAHAN MAINE AAPKA EXACT NAYA WALA URL UPDATE KAR DIYA HAI 👇
+// AAPKA NAYA URL YAHAN MAINE DAL DIYA HAI 👇
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylak9oYGymqMOPA3zffIXYQjs3QmmtSA0Zutdeh-E9AD_iVQDIwuvosZs33NEFWaM/exec";
 
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
@@ -183,19 +179,16 @@ function onVendor() {
   if (isNaN(idx)) return;
   selVendor = VENDORS[idx];
   
-  // NAYA LOGIC: SCREEN PAR CHECK KAREIN KI NUMBER MILA YA NAHI
   const phoneBox = document.getElementById('vPhone');
   if (selVendor.phone && selVendor.phone.toString().trim() !== "") {
       phoneBox.innerHTML = "📞 +91-" + selVendor.phone;
       phoneBox.style.color = "#1B6B2F";
       phoneBox.style.background = "#E8F5EC";
-      phoneBox.style.borderColor = "#A5D6A7";
       phoneBox.style.display = "inline-block";
   } else {
       phoneBox.innerHTML = "⚠️ Number sheet me nahi mila (Column E check karein)";
       phoneBox.style.color = "#B71C1C";
       phoneBox.style.background = "#FFEBEE";
-      phoneBox.style.borderColor = "#FFCDD2";
       phoneBox.style.display = "inline-block";
   }
 
@@ -334,7 +327,6 @@ async function doUpload() {
     btn.disabled = false;
     btn.innerHTML = '☁️ Google Sheet पर भेजें';
 
-    // ANDROID KE LIYE AUTOMATIC WHATSAPP
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
     if (!isIOS) {
@@ -350,7 +342,6 @@ async function doUpload() {
   }
 }
 
-// WHATSAPP BUTTON (MANUAL)
 function sendWhatsApp() {
   const amt = document.getElementById('amtInput').value;
   if (!selVendor) { alert('Vendor Select करें!'); return; }
