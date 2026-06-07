@@ -139,7 +139,7 @@
 </div>
 
 <script>
-// AAPKA LATEST URL FIX HAI
+// AAPKA SCRIPT URL
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylak9oYGymqMOPA3zffIXYQjs3QmmtSA0Zutdeh-E9AD_iVQDIwuvosZs33NEFWaM/exec";
 
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
@@ -284,22 +284,25 @@ async function doUpload() {
     const raw = b64full.split(',')[1];
     lastTsTag = String(Date.now()).slice(-6);
 
+    // GET Request 
     const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
     fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
 
-    // PHOTO CORRUPTION ISSUE FIXED HERE (JSON method restored)
+    // PHOTO UPLOAD FIX: Payload format wapas purana wala kar diya (Text/Plain bypass preflight)
+    const payload = JSON.stringify({
+      vendor: selVendor.name,
+      image: raw,
+      tsTag: lastTsTag,
+      amount: amt
+    });
+
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: {
-        'Content-Type': 'text/plain'
+        'Content-Type': 'text/plain' 
       },
-      body: JSON.stringify({
-        vendor: selVendor.name,
-        image: raw,
-        tsTag: lastTsTag,
-        amount: amt
-      })
+      body: payload
     }).catch(e=>{});
 
     btn.innerHTML = '<span class="spin"></span> Sheet Update हो रही है...';
@@ -324,15 +327,16 @@ async function doUpload() {
     }
     
     clearPhoto(); 
-    showStatus('ok', '✅ "' + selVendor.name + '" को ₹' + amt.toLocaleString('en-IN') + ' भेजे गए!\n📱 Download और Sheet Upload दोनों हो गए।');
+    showStatus('ok', '✅ Photo aur Data Update dono ho gaye!');
     
     btn.disabled = false;
     btn.innerHTML = '☁️ Google Sheet पर भेजें';
 
+    // AUTO WHATSAPP REDIRECT
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
     if (!isIOS) {
-      const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt sheet par update ho gayi hai.";
+      const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt portal par upload ho gayi hai.";
       const waUrl = getWaUrl(selVendor.phone) + '?text=' + encodeURIComponent(msg);
       setTimeout(() => { window.location.href = waUrl; }, 500);
     }
@@ -348,7 +352,7 @@ function sendWhatsApp() {
   const amt = document.getElementById('amtInput').value;
   if (!selVendor) { alert('Vendor Select करें!'); return; }
   
-  const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + (amt || 'Paid') + "\n\nReceipt sheet par update ho gayi hai.";
+  const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + (amt || 'Paid') + "\n\nReceipt portal par update ho gayi hai.";
   const waUrl = getWaUrl(selVendor.phone) + '?text=' + encodeURIComponent(msg);
   window.open(waUrl, '_blank');
 }
