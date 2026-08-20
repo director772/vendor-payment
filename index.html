@@ -140,7 +140,6 @@
 </div>
 
 <script>
-// YAHAN AAPKA NAYA ERROR-FREE URL DAAL DIYA HAI
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOA7KtQLqbjwtIVW0xFLTJ_bi3_K5kmq7SAZZ16NpH32OuP6P1rhf4ZnIZTHfrJC4/exec";
 
 let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
@@ -279,9 +278,8 @@ async function doUpload() {
     const raw = b64full.split(',')[1];
     lastTsTag = String(Date.now()).slice(-6);
 
-    // 1. Pehle GET request taaki entry create ho
     const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
-    fetch(getUrl, {mode: 'no-cors', cache: 'no-store'}).catch(e=>{});
+    await fetch(getUrl, {mode: 'no-cors', cache: 'no-store'});
 
     const payload = JSON.stringify({
       vendor: selVendor.name,
@@ -290,29 +288,19 @@ async function doUpload() {
       amount: amt
     });
 
-    btn.innerHTML = '<span class="spin"></span> Photo Upload हो रही है...';
+    btn.innerHTML = '<span class="spin"></span> Photo Upload हो रही है (Wait)...';
 
-    // APPLE FIX: Yahan 'await' lagaya hai. Ab Safari photo bheje bina WhatsApp par nahi jayega.
+    await new Promise(r => setTimeout(r, 1500));
+
     await fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: {
-        'Content-Type': 'text/plain' 
-      },
+      headers: { 'Content-Type': 'text/plain' },
       body: payload
     });
 
-    // Device save karne ka code (Optional)
-    try {
-      const a = document.createElement('a');
-      a.href = b64full;
-      a.download = selVendor.name.replace(/[^a-zA-Z0-9]/g, '_') + '_' + lastTsTag + '.jpg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch(ex) {}
+    await new Promise(r => setTimeout(r, 1000));
 
-    // Balance update on screen
     if (selVendor.balance !== undefined) {
       selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
       if (selVendor.totalPaid !== undefined) {
@@ -325,29 +313,30 @@ async function doUpload() {
     clearPhoto(); 
     showStatus('ok', '✅ Photo aur Data Update dono ho gaye!');
     
-    // WHATSAPP REDIRECT LOGIC
+    // WHATSAPP DEEP LINK FIX (wa.me ki jagah whatsapp://)
     const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt sheet par update ho gayi hai.";
     let p = selVendor.phone ? String(selVendor.phone).replace(/\D/g, '') : "";
     if(p.length === 10) p = "91" + p;
-    const waUrl = p ? "https://wa.me/" + p + "?text=" + encodeURIComponent(msg) : "https://wa.me/?text=" + encodeURIComponent(msg);
+    
+    // Yahan Apple strict block ko bypass kiya gaya hai
+    const waUrl = p ? "whatsapp://send?phone=" + p + "&text=" + encodeURIComponent(msg) : "whatsapp://send?text=" + encodeURIComponent(msg);
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
     if (!isIOS) {
-      // ANDROID
       btn.innerHTML = '✅ WhatsApp खुल रहा है...';
       setTimeout(() => { 
         window.location.href = waUrl; 
-        setTimeout(reset, 1500);
+        setTimeout(reset, 3000);
       }, 500);
     } else {
-      // iPHONE
       btn.disabled = false;
       btn.innerHTML = '💬 WhatsApp पर भेजें';
       btn.className = 'sbtn sbtn-wa';
       btn.onclick = function() {
         window.location.href = waUrl;
-        setTimeout(reset, 1500);
+        // Apple cancel na kare, isliye 4 second ka wait diya hai
+        setTimeout(reset, 4000);
       };
     }
 
@@ -400,7 +389,6 @@ function reset() {
   document.getElementById('div1').style.display = 'none';
   document.getElementById('div2').style.display = 'none';
   
-  // BUTTON KO WAPAS NORMAL KARNA
   const btn = document.getElementById('submitBtn');
   btn.innerHTML = '🚀 Submit & WhatsApp';
   btn.className = 'sbtn';
