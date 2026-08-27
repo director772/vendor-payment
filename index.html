@@ -140,8 +140,8 @@
 </div>
 
 <script>
-// YAHAN APNA NAYA 'NEW DEPLOYMENT' WALA URL PASTE KAREIN
-const SCRIPT_URL = "APNA_NAYA_URL_YAHAN_DALEIN";
+// AAPKA NAYA WORKING URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwvaSZhtrgR8oer6rkJFPewf_Ew8OzcTKawdy7uZsuKAbvceqR6tUTl-TveIEnatT4/exec";
 
 let VENDORS = [], selVendor = null, selFile = null;
 
@@ -278,13 +278,11 @@ async function doUpload() {
     const b64full = await toB64(selFile);
     const raw = b64full.split(',')[1];
 
-    // NAYA TAREEKA: FormData use kiya hai taaki CORS block na kare aur response mil sake
     const formData = new URLSearchParams();
     formData.append('vendor', selVendor.name);
     formData.append('image', raw);
     formData.append('amount', amt);
 
-    // BINA 'no-cors' KE FETCH (Ab app ko pata chalega ki save hua ya nahi)
     const response = await fetch(SCRIPT_URL, {
       method: 'POST',
       body: formData
@@ -292,7 +290,6 @@ async function doUpload() {
 
     const data = await response.json();
     
-    // AGAR GOOGLE NE SUCCESS NAHI BOLA, TOH DIRECT ERROR DIKHEGA
     if (data.status !== "success") {
         throw new Error("Upload Failed from Server");
     }
@@ -309,7 +306,6 @@ async function doUpload() {
     clearPhoto(); 
     showStatus('ok', '✅ Payment Saved! Sheet 100% updated.');
     
-    // WHATSAPP REDIRECT
     const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt sheet par update ho gayi hai.";
     let p = selVendor.phone ? String(selVendor.phone).replace(/\D/g, '') : "";
     if(p.length === 10) p = "91" + p;
@@ -334,7 +330,6 @@ async function doUpload() {
     }
 
   } catch (error) {
-    // AB YE KABHI JHOOTHA SUCCESS NAHI BOLEGA
     showStatus('err', '❌ Upload Fail ho gaya hai! Sheet update NAHI hui. Dobara try karein.');
     btn.disabled = false;
     btn.innerHTML = '🚀 Submit & WhatsApp';
