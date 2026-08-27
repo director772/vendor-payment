@@ -140,9 +140,10 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOA7KtQLqbjwtIVW0xFLTJ_bi3_K5kmq7SAZZ16NpH32OuP6P1rhf4ZnIZTHfrJC4/exec";
+// YAHAN APNA NAYA 'NEW DEPLOYMENT' WALA URL PASTE KAREIN
+const SCRIPT_URL = "APNA_NAYA_URL_YAHAN_DALEIN";
 
-let VENDORS = [], selVendor = null, selFile = null, lastTsTag = "";
+let VENDORS = [], selVendor = null, selFile = null;
 
 window.onload = loadVendors;
 
@@ -270,36 +271,31 @@ async function doUpload() {
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Google को भेज रहे हैं...';
+  btn.innerHTML = '<span class="spin"></span> Uploading... कृपया रुके रहें';
   clearStatus();
 
   try {
     const b64full = await toB64(selFile);
     const raw = b64full.split(',')[1];
-    lastTsTag = String(Date.now()).slice(-6);
 
-    const getUrl = SCRIPT_URL + '?action=upload&vendor=' + encodeURIComponent(selVendor.name) + '&tsTag=' + lastTsTag + '&amount=' + amt + '&_t=' + new Date().getTime();
-    await fetch(getUrl, {mode: 'no-cors', cache: 'no-store'});
+    // NAYA TAREEKA: FormData use kiya hai taaki CORS block na kare aur response mil sake
+    const formData = new URLSearchParams();
+    formData.append('vendor', selVendor.name);
+    formData.append('image', raw);
+    formData.append('amount', amt);
 
-    const payload = JSON.stringify({
-      vendor: selVendor.name,
-      image: raw,
-      tsTag: lastTsTag,
-      amount: amt
-    });
-
-    btn.innerHTML = '<span class="spin"></span> Photo Upload हो रही है (Wait)...';
-
-    await new Promise(r => setTimeout(r, 1500));
-
-    await fetch(SCRIPT_URL, {
+    // BINA 'no-cors' KE FETCH (Ab app ko pata chalega ki save hua ya nahi)
+    const response = await fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: payload
+      body: formData
     });
 
-    await new Promise(r => setTimeout(r, 1000));
+    const data = await response.json();
+    
+    // AGAR GOOGLE NE SUCCESS NAHI BOLA, TOH DIRECT ERROR DIKHEGA
+    if (data.status !== "success") {
+        throw new Error("Upload Failed from Server");
+    }
 
     if (selVendor.balance !== undefined) {
       selVendor.balance = Math.max(0, Number(selVendor.balance) - amt);
@@ -311,16 +307,14 @@ async function doUpload() {
     }
     
     clearPhoto(); 
-    showStatus('ok', '✅ Photo aur Data Update dono ho gaye!');
+    showStatus('ok', '✅ Payment Saved! Sheet 100% updated.');
     
-    // WHATSAPP DEEP LINK FIX (wa.me ki jagah whatsapp://)
+    // WHATSAPP REDIRECT
     const msg = "Payment Confirmation:\nVendor: " + selVendor.name + "\nAmount: ₹" + amt + "\n\nReceipt sheet par update ho gayi hai.";
     let p = selVendor.phone ? String(selVendor.phone).replace(/\D/g, '') : "";
     if(p.length === 10) p = "91" + p;
     
-    // Yahan Apple strict block ko bypass kiya gaya hai
     const waUrl = p ? "whatsapp://send?phone=" + p + "&text=" + encodeURIComponent(msg) : "whatsapp://send?text=" + encodeURIComponent(msg);
-
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
     if (!isIOS) {
@@ -335,13 +329,13 @@ async function doUpload() {
       btn.className = 'sbtn sbtn-wa';
       btn.onclick = function() {
         window.location.href = waUrl;
-        // Apple cancel na kare, isliye 4 second ka wait diya hai
         setTimeout(reset, 4000);
       };
     }
 
   } catch (error) {
-    showStatus('err', '❌ Error processing photo.');
+    // AB YE KABHI JHOOTHA SUCCESS NAHI BOLEGA
+    showStatus('err', '❌ Upload Fail ho gaya hai! Sheet update NAHI hui. Dobara try karein.');
     btn.disabled = false;
     btn.innerHTML = '🚀 Submit & WhatsApp';
   }
